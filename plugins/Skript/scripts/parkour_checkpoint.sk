@@ -1,0 +1,550 @@
+#################################
+# Join Game
+#################################
+on load:
+    execute console command "scoreboard objectives add checkpoint dummy Checkpoint"
+
+on join:
+    wait 5 ticks
+    execute console command "scoreboard players set %player% checkpoint 0"
+    giveParkourEffects(player)
+
+#################################
+# PARKOUR EFFECTS (STABLE)
+#################################
+
+function giveParkourEffects(p: player):
+    execute console command "effect give %{_p}% night_vision 999999 0 true"
+    execute console command "effect give %{_p}% saturation 999999 0 true"
+    if {_p} does not have compass named "&e&lย้อนกลับจุด Checkpoint (Right Click)":
+        set slot 8 of {_p} to compass named "&e&lย้อนกลับจุด Checkpoint (Right Click)" with lore "&7คลิกขวาเพื่อย้อนกลับไปจุด Checkpoint ล่าสุด"
+
+every 5 seconds:
+    loop all players:
+        if loop-player does not have night vision:
+            execute console command "effect give %loop-player% night_vision 999999 0 true"
+        if loop-player does not have saturation:
+            execute console command "effect give %loop-player% saturation 999999 0 true"
+        if loop-player does not have compass named "&e&lย้อนกลับจุด Checkpoint (Right Click)":
+            set slot 8 of loop-player to compass named "&e&lย้อนกลับจุด Checkpoint (Right Click)" with lore "&7คลิกขวาเพื่อย้อนกลับไปจุด Checkpoint ล่าสุด"
+
+#################################
+# CHECKPOINT ITEM RETURN
+#################################
+
+on right click with compass:
+    if name of player's tool is "&e&lย้อนกลับจุด Checkpoint (Right Click)":
+        cancel event
+        if {cp.last::%player%} is not set:
+            play sound "entity.villager.no" to player
+            send title "&cผิดพลาด" with subtitle "&cคุณยังไม่เคยเหยียบ Checkpoint" to player
+            stop
+            
+        set {_cp} to {cp.last::%player%}
+        if {_cp} = 0:
+            teleport player to spawn location of world "world"
+            play sound "entity.enderman.teleport" to player
+        else:
+            if {cp.warp::%{_cp}%} is set:
+                teleport player to {cp.warp::%{_cp}%}
+                play sound "entity.enderman.teleport" to player
+            else:
+                play sound "entity.villager.no" to player
+                send title "&cผิดพลาด" with subtitle "&cไม่พบพิกัดจุดเซฟ" to player
+                
+#################################
+# REGISTER BEACON
+#################################
+
+command /registercp <number>:
+    permission: op
+    executable by: players and console
+    trigger:
+        loop all players:
+
+            if block below loop-player is not beacon:
+                play sound "entity.villager.no" to loop-player
+                send title "&cผิดพลาด" with subtitle "&cต้องยืนบน Beacon" to loop-player
+                continue
+            set {_loc} to location of block below loop-player
+            set {cp.beacon::%{_loc}%} to arg-1
+            set {cp.warp::%arg-1%} to location of loop-player
+            play sound "entity.experience_orb.pickup" to loop-player
+            send title "&aสำเร็จ" with subtitle "&eRegister CP %arg-1%" to loop-player
+
+
+#################################
+# SET FINAL
+#################################
+
+command /setfinalcp <number>:
+    permission: op
+    executable by: players and console
+    trigger:
+        loop all players:
+
+            set {cp.final} to arg-1
+            play sound "entity.player.levelup" to loop-player
+            send title "&eสำเร็จ" with subtitle "&aFinal CP = %arg-1%" to loop-player
+
+
+#################################
+# RESET IF DAMAGED
+#################################
+
+on damage:
+    if victim is a player:
+        set damage to 0
+        if {cp.counting::%victim%} is true:
+            delete {cp.counting::%victim%}
+            execute console command "bossbar remove cp_%victim%"
+            play sound "entity.villager.no" to victim
+            send title "&cยกเลิก!" to victim
+
+
+#################################
+# TOUCH BEACON
+#################################
+
+on player move:
+    if block below player is beacon:
+
+        set {_loc} to location of block below player
+
+        if {cp.beacon::%{_loc}%} is not set:
+            stop
+
+        set {_cp} to {cp.beacon::%{_loc}%}
+
+        # =============================
+        # FINAL CHECKPOINT CINEMATIC
+        # =============================
+
+        if {_cp} = {cp.final}:
+
+            if {cp.counting::%player%} is true:
+                stop
+
+            set {cp.counting::%player%} to true
+            execute console command "title %player% times 0 20 0"
+
+            execute console command "title %player% times 0 20 0"
+
+            loop 10 times:
+
+                if block below player is not beacon:
+                    delete {cp.counting::%player%}
+                    play sound "entity.villager.no" to player
+                    send title "&c&lยกเลิก" to player
+                    stop
+
+                set {_left} to 11 - loop-number
+
+                send title "&c&l%{_left}%" with subtitle "&eกำลังจะชนะในอีก" to player
+
+                if {_left} > 3:
+                    play sound "block.note_block.hat" to player
+                    wait 1 second
+
+                else if {_left} = 3:
+                    play sound "entity.warden.heartbeat" to player
+                    apply nausea 1 to player for 1 second
+                    execute console command "particle minecraft:lava ~ ~1 ~ 0.3 0.3 0.3 0.01 40 force %player%"
+                    wait 1.2 seconds
+
+                else if {_left} = 2:
+                    play sound "entity.warden.heartbeat" to player
+                    apply nausea 1 to player for 1 second
+                    execute console command "particle minecraft:flame ~ ~1 ~ 0.3 0.3 0.3 0.01 60 force %player%"
+                    wait 1.2 seconds
+
+                else:
+                    play sound "entity.ender_dragon.growl" to player
+                    apply slow 4 to player for 2 seconds
+                    apply levitation 1 to player for 1 second
+                    execute console command "particle minecraft:dragon_breath ~ ~1 ~ 0.5 0.5 0.5 0.01 120 force %player%"
+                    wait 2 seconds
+
+            # ===== GO =====
+
+            delete {cp.counting::%player%}
+
+            play sound "entity.lightning_bolt.thunder" to player
+            execute console command "particle minecraft:firework ~ ~1 ~ 0.5 0.5 0.5 0.01 200 force %player%"
+            play sound "ui.toast.challenge_complete" to player
+
+            send title "&6&lเก่งจังเลยไอต้าว!" to player
+
+            set {cp.last::%player%} to 0
+            set {checkpoint::%player%} to 0
+            set {_output} to "0/60"
+            log "%{_output}%" to "cp_overlay_data.log"
+
+            wait 2 seconds
+            teleport player to spawn location of world "world"
+
+            stop
+                        
+        # ถ้ายังไม่เคยมีค่า
+        if {cp.last::%player%} is not set:
+            set {cp.last::%player%} to 0
+
+        # ===== ด่านปกติ =====
+
+        # ถ้าเหยียบ CP เดิม → ไม่ทำงาน
+        if {_cp} = {cp.last::%player%}:
+            stop
+
+        set {_previous} to {cp.last::%player%}
+
+        set {cp.last::%player%} to {_cp}
+        execute console command "scoreboard players set %player% checkpoint %{_cp}%"
+        execute console command "execute at %player% run spawnpoint %player% ~ ~ ~"
+        set {_output} to "%{_cp}%/60"
+        log "%{_output}%" to "cp_overlay_data.log"
+
+        if {_cp} > {_previous}:
+            play sound "entity.player.levelup" to player
+            send title "&aด่านที่" with subtitle "&e%{_cp}%" to player
+        else:
+            play sound "block.note_block.pling" to player
+            send title "&eกลับมาทำมุย" with subtitle "&eCheckpoint %{_cp}%" to player
+
+#################################
+# DEATH WARP
+#################################
+
+on death:
+    if victim is a player:
+        wait 2 ticks
+        if {cp.last::%victim%} is set:
+            if {cp.last::%victim%} > 0:
+                set {_cp} to {cp.last::%victim%}
+                teleport victim to {cp.warp::%{_cp}%}
+
+
+#################################
+# GOTO 60
+#################################
+
+command /goto60:
+    permission: op
+    executable by: players and console
+    trigger:
+        loop all players:
+
+            if {cp.warp::60} is set:
+
+                play sound "entity.ender_dragon.growl" to loop-player
+            
+                # 1. Setup locations
+                set {_startLoc} to location(15.5, 68, -49.5, world "world")
+                set {_targetLoc} to {cp.warp::60}
+            
+                # Setup peak altitude for parabolic flight (Current Y + 200 blocks up to dodge buildings)
+                set {_peakY} to y-coordinate of {_startLoc} + 200
+            
+                # Distance math for Phase 2 (Horizontal Flight)
+                set {_xDiff} to x-coordinate of {_targetLoc} - x-coordinate of {_startLoc}
+                set {_zDiff} to z-coordinate of {_targetLoc} - z-coordinate of {_startLoc}
+                set {_diveDiff} to {_peakY} - y-coordinate of {_targetLoc}
+            
+                # Speed/Steps (Adjusted to 40-40-40 for a smooth 6-second flight)
+                set {_phase1Steps} to 40
+                set {_phase2Steps} to 40
+                set {_phase3Steps} to 40
+            
+                # Phase 1 and 2 both move horizontally, so divide X/Z diff by their combined steps (80)
+                set {_yUpStep} to 200 / {_phase1Steps}
+                set {_totalForwardSteps} to {_phase1Steps} + {_phase2Steps}
+                set {_xStep} to {_xDiff} / {_totalForwardSteps}
+                set {_zStep} to {_zDiff} / {_totalForwardSteps}
+                set {_yDownStep} to {_diveDiff} / {_phase3Steps}
+            
+                # 2. Spawn Dragon and Mount
+                spawn 1 ender dragon at {_startLoc}
+                set {_dragon} to last spawned entity
+                execute console command "data merge entity %uuid of {_dragon}% {Tags:['cutscene_dragon'],Silent:1b,Invulnerable:1b,NoGravity:1b,PersistenceRequired:1b,DragonPhase:10}"
+            
+                teleport loop-player to {_startLoc}
+                make loop-player ride {_dragon}
+            
+                send title "&x&3&9&F&F&1&4&lไปกันเลยน้อง!" to loop-player for 3 seconds
+            
+                # Calculate an estimated yaw for the flight
+                # The general facing direction for the target tower is 180 (North).
+                set {_facingYaw} to 180
+            
+                # 3. Flight Animation Loop Setup
+                set {_currentLoc} to {_startLoc}
+            
+                # Phase 1: Diagonal Ascent
+                # The user requested 180 (North) for the ascent phase
+                set yaw of {_currentLoc} to 180
+                # Keep pitch exactly flat (0) as requested by the user, while using DragonPhase:0 so it doesn't force its head down looking for the ground.
+                set pitch of {_currentLoc} to 0
+                loop {_phase1Steps} times:
+                    add {_xStep} to x-coordinate of {_currentLoc}
+                    add {_yUpStep} to y-coordinate of {_currentLoc}
+                    add {_zStep} to z-coordinate of {_currentLoc}
+                    set yaw of {_currentLoc} to 180
+                    teleport {_dragon} to {_currentLoc}
+                    execute console command "data merge entity %uuid of {_dragon}% {DragonPhase:0}"
+                    play sound "entity.ender_dragon.flap" at {_dragon} for loop-player
+                    show 10 of flame particle at location of {_dragon} offset by vector(1, 0.5, 1)
+                    wait 1 tick
+                
+                # Phase 2: Horizontal Rush
+                set pitch of {_currentLoc} to 0
+                loop {_phase2Steps} times:
+                    add {_xStep} to x-coordinate of {_currentLoc}
+                    add {_zStep} to z-coordinate of {_currentLoc}
+                    set yaw of {_currentLoc} to {_facingYaw}
+                    teleport {_dragon} to {_currentLoc}
+                    execute console command "data merge entity %uuid of {_dragon}% {DragonPhase:0}"
+                    show 50 of cloud particle at location of {_dragon} offset by vector(2, 0.5, 2)
+                    wait 1 tick
+                
+                # Phase 3: Dive Down
+                set pitch of {_currentLoc} to 60
+                loop {_phase3Steps} times:
+                    remove {_yDownStep} from y-coordinate of {_currentLoc}
+                    set yaw of {_currentLoc} to {_facingYaw}
+                    teleport {_dragon} to {_currentLoc}
+                    execute console command "data merge entity %uuid of {_dragon}% {DragonPhase:0}"
+                    show 20 of portal particle at location of {_dragon} offset by vector(1, 1, 1)
+                    wait 1 tick
+                
+                # 4. Flash and Clean up
+                play sound "entity.enderman.teleport" to loop-player
+                show 200 of portal particle at location of loop-player offset by vector(2,2,2)
+            
+                make loop-player leave vehicle
+                delete {_dragon}
+                execute console command "kill @e[type=ender_dragon,tag=cutscene_dragon]"
+            
+                wait 2 ticks
+                teleport loop-player to {cp.warp::60}
+            
+                wait 5 ticks
+            
+                teleport loop-player to {cp.warp::60}
+
+                show 120 of reverse portal particle at location of loop-player offset by vector(0,1,0)
+                play sound "entity.player.levelup" to loop-player
+
+                send title "&x&3&9&F&F&1&4&lถึงแล้วน้อง!" to loop-player for 2 seconds
+                send subtitle "&aCheckpoint 60" to loop-player for 2 seconds
+
+                set {cp.last::%loop-player%} to 60
+                execute console command "scoreboard players set %loop-player% checkpoint 60"
+                set {_output} to "60/60"
+                log "%{_output}%" to "cp_overlay_data.log"
+
+            else:
+                play sound "entity.villager.no" to loop-player
+                send title "&cผิดพลาด" with subtitle "&cยังไม่ได้ register Checkpoint 60" to loop-player
+#################################
+# BACK
+#################################
+
+command /back [<integer>]:
+    executable by: players and console
+    trigger:
+        loop all players:
+
+            if {cp.last::%loop-player%} is not set:
+                play sound "entity.villager.no" to loop-player
+                send title "&cผิดพลาด" with subtitle "&cยังไม่มี checkpoint" to loop-player
+                continue
+
+            set {_current} to {cp.last::%loop-player%}
+        
+            if arg-1 is set:
+                set {_target} to arg-1
+            else:
+                set {_target} to {_current} - 1
+
+            if {_target} <= 0:
+                play sound "entity.villager.no" to loop-player
+                send title "&cผิดพลาด" with subtitle "&cไม่มี checkpoint ก่อนหน้า" to loop-player
+                continue
+            
+            if {_target} > {_current}:
+                play sound "entity.villager.no" to loop-player
+                send title "&cผิดพลาด" with subtitle "&cคุณยังไม่ถึงด่าน %{_target}%" to loop-player
+                continue
+
+            if {cp.warp::%{_target}%} is set:
+                teleport loop-player to {cp.warp::%{_target}%}
+                set {cp.last::%loop-player%} to {_target}
+                execute console command "scoreboard players set %loop-player% checkpoint %{_target}%"
+                execute console command "execute at %loop-player% run spawnpoint %loop-player% ~ ~ ~"
+                set {_output} to "%{_target}%/60"
+                log "%{_output}%" to "cp_overlay_data.log"
+                play sound "entity.enderman.teleport" to loop-player
+                send title "&eย้อนกลับ" with subtitle "&eCheckpoint %{_target}%" to loop-player
+            else:
+                play sound "entity.villager.no" to loop-player
+                send title "&cผิดพลาด" with subtitle "&cไม่พบจุดเซฟของ Checkpoint %{_target}%!" to loop-player
+
+#################################
+# CURRENT CHECKPOINT
+#################################
+
+command /cp:
+    executable by: players and console
+    trigger:
+        loop all players:
+
+            if {cp.last::%loop-player%} is not set:
+                play sound "entity.villager.no" to loop-player
+                send title "&cผิดพลาด" with subtitle "&cยังไม่มี checkpoint" to loop-player
+                continue
+
+            set {_current} to {cp.last::%loop-player%}
+
+            if {_current} <= 0:
+                teleport loop-player to spawn location of world "world"
+                play sound "entity.enderman.teleport" to loop-player
+                send title "&aกลับมายัง" with subtitle "&aจุดเริ่มต้น" to loop-player
+                continue
+
+            if {cp.warp::%{_current}%} is set:
+                teleport loop-player to {cp.warp::%{_current}%}
+                play sound "entity.enderman.teleport" to loop-player
+                send title "&aจะไปไหนจ๊ะ" to loop-player
+            else:
+                play sound "entity.villager.no" to loop-player
+                send title "&cผิดพลาด" with subtitle "&cไม่พบจุดเซฟของ Checkpoint %{_current}%!" to loop-player
+
+
+#################################
+# RESTART
+#################################
+
+command /restart:
+    executable by: players and console
+    trigger:
+        loop all players:
+
+            set {cp.last::%loop-player%} to 0
+            execute console command "scoreboard players set %loop-player% checkpoint 0"
+            set {_output} to "0/60"
+            log "%{_output}%" to "cp_overlay_data.log"
+            teleport loop-player to spawn location of world "world"
+            giveParkourEffects(loop-player)
+            play sound "block.note_block.pling" to loop-player
+            send title "&aเริ่มต้นใหม่" with subtitle "&aรีเซ็ตด่านเรียบร้อย!" to loop-player
+
+#################################
+# FUN COMMANDS
+#################################
+
+command /trapweb:
+    executable by: players and console
+    trigger:
+        loop all players:
+
+            set block at loop-player to cobweb
+            send "&aสร้างใยแมงมุมที่ตัวคุณแล้ว!" to loop-player
+
+command /fly <integer>:
+    executable by: players and console
+    trigger:
+        loop all players:
+            if {fly.time::%loop-player%} > 0:
+                add arg-1 to {fly.time::%loop-player%}
+                send "&aเพิ่มเวลาบินอีก &e%arg-1% &aวินาที! &7(รวม: &e%{fly.time::%loop-player%}% &aวินาที)" to loop-player
+                play sound "entity.player.levelup" to loop-player
+            else:
+                set {fly.time::%loop-player%} to arg-1
+                set loop-player's flight mode to true
+                send "&aคุณได้รับสถานะบิน &e%arg-1% &aวินาที!" to loop-player
+                play sound "entity.illusioner.cast_spell" to loop-player
+                play sound "entity.player.levelup" to loop-player
+
+every 1 second:
+    loop all players:
+        if {fly.time::%loop-player%} > 0:
+            remove 1 from {fly.time::%loop-player%}
+            send title "&a✈" with subtitle "&eเหลือเวลา: &c%{fly.time::%loop-player%}%" to loop-player for 1.2 seconds
+            play sound "block.amethyst_block.chime" to loop-player
+            play sound "entity.experience_orb.pickup" to loop-player
+            if {fly.time::%loop-player%} <= 0:
+                set loop-player's flight mode to false
+                send title "&cหมดเวลา!" with subtitle "&7ระวังร่วงงงง" to loop-player for 2 seconds
+                play sound "entity.villager.no" to loop-player
+
+command /tnt <integer>:
+    executable by: players and console
+    trigger:
+        loop arg-1 times:
+            loop all players:
+                set {_loc} to location of loop-player
+                set {_offsetX} to a random number between -1.5 and 1.5
+                set {_offsetZ} to a random number between -1.5 and 1.5
+                add {_offsetX} to x-coordinate of {_loc}
+                add {_offsetZ} to z-coordinate of {_loc}
+                create a safe explosion of force 2 at {_loc}
+                send "&eตู้มมมมมม!!" to loop-player
+            wait 5 ticks
+
+command /chickenride:
+    executable by: players and console
+    trigger:
+        loop all players:
+
+            set {_nextCP} to {cp.last::%loop-player%} + 1
+            if {cp.warp::%{_nextCP}%} is not set:
+                send "&cคุณอยู่ด่านล่าสุดแล้ว ไม่มีด่านต่อไป!" to loop-player
+                continue
+
+            set {_startLoc} to location of loop-player
+            set {_targetLoc} to {cp.warp::%{_nextCP}%}
+
+            # Math setup
+            set {_xDiff} to x-coordinate of {_targetLoc} - x-coordinate of {_startLoc}
+            set {_yDiff} to y-coordinate of {_targetLoc} - y-coordinate of {_startLoc}
+            set {_zDiff} to z-coordinate of {_targetLoc} - z-coordinate of {_startLoc}
+
+            set {_steps} to 60
+            set {_xStep} to {_xDiff} / {_steps}
+            set {_yStep} to {_yDiff} / {_steps}
+            set {_zStep} to {_zDiff} / {_steps}
+
+            spawn 1 chicken at {_startLoc}
+            set {_chicken} to last spawned entity
+            execute console command "data merge entity %uuid of {_chicken}% {Tags:['cutscene_chicken'],Silent:1b,Invulnerable:1b,NoGravity:1b,PersistenceRequired:1b}"
+
+            make loop-player ride {_chicken}
+            send title "&e&lกระต๊าก! ไปด่านต่อไป!" to loop-player for 2 seconds
+
+            set {_currentLoc} to {_startLoc}
+        
+            loop {_steps} times:
+                add {_xStep} to x-coordinate of {_currentLoc}
+                add {_yStep} to y-coordinate of {_currentLoc}
+                add {_zStep} to z-coordinate of {_currentLoc}
+
+                set yaw of {_currentLoc} to 0
+                set pitch of {_currentLoc} to 0
+
+                teleport {_chicken} to {_currentLoc}
+                play sound "entity.chicken.flap" at {_chicken} for loop-player
+                show 10 of cloud particle at location of {_chicken} offset by vector(0.5, 0.5, 0.5)
+                wait 1 tick
+
+            play sound "entity.enderman.teleport" to loop-player
+            make loop-player leave vehicle
+            delete {_chicken}
+            execute console command "kill @e[type=chicken,tag=cutscene_chicken]"
+        
+            wait 2 ticks
+            teleport loop-player to {cp.warp::%{_nextCP}%}
+            play sound "entity.player.levelup" to loop-player
+        
+            set {cp.last::%loop-player%} to {_nextCP}
+            execute console command "scoreboard players set %loop-player% checkpoint %{_nextCP}%"
+            set {_output} to "%{_nextCP}%/%{cp.total}%"
+            log "%{_output}%" to "cp_overlay_data.log"

@@ -1,0 +1,81 @@
+# Ultimate Showcase Camera Drive
+# This script demonstrates all features of the CameraDrives system
+
+name: UltimateShowcase
+
+# Specify the world (optional, defaults to the first world if not specified)
+world: world
+
+# Starting point - ground level, looking straight ahead
+waypoint: 0,64,0,0,0
+
+# Slow ascent with a slight turn
+waypoint: 5,70,5,15,5
+waypoint: 10,75,10,30,10
+
+# Quick rise to a high point
+waypoint: 15,100,15,45,30
+
+# Dramatic top-down view
+waypoint: 20,120,20,0,90
+
+# Rapid descent with spin
+waypoint: 25,100,25,90,45
+waypoint: 30,80,30,180,0
+waypoint: 35,60,35,270,-10
+
+# Low tracking shot
+waypoint: 40,66,40,315,0
+waypoint: 50,66,50,315,0
+
+# Curve around an imaginary structure
+waypoint: 60,70,55,270,10
+waypoint: 65,75,60,225,15
+waypoint: 70,80,65,180,20
+
+# Spiral ascent
+waypoint: 75,85,65,135,25
+waypoint: 80,90,60,90,30
+waypoint: 85,95,55,45,35
+waypoint: 90,100,50,0,40
+
+# Quick side-to-side movement
+waypoint: 95,100,55,0,0
+waypoint: 100,100,45,0,0
+waypoint: 105,100,55,0,0
+
+# Dive towards ground
+waypoint: 110,70,50,0,-45
+
+# Pull up at last second
+waypoint: 115,66,45,0,0
+
+# Slow crawl to finish
+waypoint: 120,66,40,0,0
+
+# Speed changes throughout the drive
+# Start slow
+speed: 2
+
+# Speed up for the rise
+@125,66,35: speed 8
+
+# Slow down for the top-down view
+@20,120,20: speed 1
+
+# Speed up for the rapid descent
+@25,100,25: speed 10
+
+# Normal speed for tracking shot
+@40,66,40: speed 5
+
+# Slow for spiral
+@75,85,65: speed 3
+
+# Fast for side-to-side
+@95,100,55: speed 15
+
+# Slow for final approach
+@115,66,45: speed 2
+
+# End of camera drive

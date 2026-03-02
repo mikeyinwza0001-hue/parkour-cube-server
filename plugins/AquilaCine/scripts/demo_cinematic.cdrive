@@ -1,0 +1,25 @@
+# Demo Cinematic Camera Drive
+# This demonstrates a more complex camera path
+name: DemoCinematic
+
+# Starting point - looking at a building
+waypoint: 100,70,100,45,0
+
+# Slowly rise up while panning right
+waypoint: 105,75,105,90,10
+waypoint: 110,85,110,135,15
+
+# Dramatic overhead shot
+waypoint: 115,95,115,180,30
+
+# Quick descent while spinning
+waypoint: 120,80,120,270,20
+waypoint: 125,70,125,360,10
+
+# Final tracking shot along the ground
+waypoint: 130,65,130,45,0
+waypoint: 140,65,140,45,0
+waypoint: 150,65,150,45,0
+
+# Slower speed for cinematic effect
+speed: 3.5
