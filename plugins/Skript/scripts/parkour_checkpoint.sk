@@ -37,7 +37,7 @@ on right click with compass:
         cancel event
         if {cp.last::%player%} is not set:
             play sound "block.note_block.bass" with pitch 0.5 to player
-            send title "&c✗ No Checkpoint" with subtitle "&7Step on a beacon first" to player
+            send title "&cNo Checkpoint" with subtitle "&7Step on a beacon first" to player
             stop
             
         set {_cp} to {cp.last::%player%}
@@ -52,7 +52,7 @@ on right click with compass:
                 show 30 of portal particle at player offset by vector(0.5, 1, 0.5)
             else:
                 play sound "block.note_block.bass" with pitch 0.5 to player
-                send title "&c✗ Lost" with subtitle "&7Checkpoint %{_cp}% has no save" to player
+                send title "&cLost" with subtitle "&7Checkpoint %{_cp}% has no save" to player
                 
 #################################
 # REGISTER BEACON
@@ -66,7 +66,7 @@ command /registercp <number>:
 
             if block below loop-player is not beacon:
                 play sound "block.note_block.bass" with pitch 0.5 to loop-player
-                send title "&c✗ No Beacon" with subtitle "&7Stand on a Beacon block" to loop-player
+                send title "&cNo Beacon" with subtitle "&7Stand on a Beacon block" to loop-player
                 continue
             set {_loc} to location of block below loop-player
             set {cp.beacon::%{_loc}%} to arg-1
@@ -74,7 +74,7 @@ command /registercp <number>:
             play sound "entity.experience_orb.pickup" with pitch 1.5 to loop-player
             play sound "block.beacon.activate" to loop-player
             show 60 of happy villager particle at loop-player offset by vector(0.5, 1, 0.5)
-            send title "&a✔ CP %arg-1%" with subtitle "&7Beacon registered" to loop-player
+            send title "&aCP %arg-1% Set" with subtitle "&7Beacon registered" to loop-player
 
 
 #################################
@@ -91,7 +91,7 @@ command /setfinalcp <number>:
             play sound "ui.toast.challenge_complete" to loop-player
             play sound "entity.player.levelup" to loop-player
             show 80 of firework particle at loop-player offset by vector(0.5, 1, 0.5)
-            send title "&6✦ Final Set" with subtitle "&eCP %arg-1% is now the goal" to loop-player
+            send title "&6Final Set" with subtitle "&eCP %arg-1% is now the goal" to loop-player
 
 
 #################################
@@ -194,7 +194,7 @@ on player move:
                 if block below player is not beacon:
                     delete {cp.counting::%player%}
                     play sound "entity.villager.no" to player
-                    send title "&c✗ Cancelled" to player
+                    send title "&cCancelled" to player
                     stop
 
                 set {_left} to 11 - loop-number
@@ -232,7 +232,7 @@ on player move:
             execute console command "particle minecraft:firework ~ ~1 ~ 0.5 0.5 0.5 0.01 200 force %player%"
             play sound "ui.toast.challenge_complete" to player
 
-            send title "&6&l✦ YOU WIN! ✦" to player
+            send title "&6&lYOU WIN!" to player
 
             set {cp.last::%player%} to 0
             set {checkpoint::%player%} to 0
@@ -261,11 +261,11 @@ on player move:
         if {_cp} > {_previous}:
             play sound "entity.player.levelup" with pitch 1.2 to player
             show 40 of happy villager particle at player offset by vector(0.5, 1, 0.5)
-            send title "&a✔ CP %{_cp}%" with subtitle "&7Keep going!" to player
+            send title "&aCP %{_cp}%" with subtitle "&7Keep going!" to player
         else:
             play sound "block.note_block.pling" with pitch 0.8 to player
             show 20 of portal particle at player offset by vector(0.3, 0.8, 0.3)
-            send title "&e↩ CP %{_cp}%" with subtitle "&7Back to checkpoint" to player
+            send title "&eCP %{_cp}%" with subtitle "&7Back to checkpoint" to player
 
 #################################
 # DEATH WARP
@@ -320,7 +320,7 @@ command /goto60:
                 teleport loop-player to {_startLoc}
                 make loop-player ride {_dragon}
             
-                send title "&x&3&9&F&F&1&4&l✦ Final Stage" to loop-player for 3 seconds
+                send title "&x&3&9&F&F&1&4&lFinal Stage" to loop-player for 3 seconds
             
                 set {_facingYaw} to 180
             
@@ -375,8 +375,8 @@ command /goto60:
                 show 120 of reverse portal particle at location of loop-player offset by vector(0,1,0)
                 play sound "entity.player.levelup" to loop-player
 
-                send title "&x&3&9&F&F&1&4&l✦ Top Reached!" to loop-player for 2 seconds
-                send subtitle "&aCP 60 — Final" to loop-player for 2 seconds
+                send title "&x&3&9&F&F&1&4&lTop Reached!" to loop-player for 2 seconds
+                send subtitle "&aCP 60 - Final" to loop-player for 2 seconds
 
                 set {cp.last::%loop-player%} to 60
                 execute console command "scoreboard players set %loop-player% checkpoint 60"
@@ -385,7 +385,7 @@ command /goto60:
 
             else:
                 play sound "entity.villager.no" to loop-player
-                send title "&c✗ Not Ready" with subtitle "&7CP 60 not registered" to loop-player
+                send title "&cNot Ready" with subtitle "&7CP 60 not registered" to loop-player
 
 #################################
 # BACK
@@ -398,7 +398,7 @@ command /back [<integer>]:
 
             if {cp.last::%loop-player%} is not set:
                 play sound "block.note_block.bass" with pitch 0.5 to loop-player
-                send title "&c✗ No CP" with subtitle "&7No checkpoint saved" to loop-player
+                send title "&cNo CP" with subtitle "&7No checkpoint saved" to loop-player
                 continue
 
             set {_current} to {cp.last::%loop-player%}
@@ -410,12 +410,12 @@ command /back [<integer>]:
 
             if {_target} <= 0:
                 play sound "block.note_block.bass" with pitch 0.5 to loop-player
-                send title "&c✗ None" with subtitle "&7No earlier checkpoint" to loop-player
+                send title "&cNone" with subtitle "&7No earlier checkpoint" to loop-player
                 continue
             
             if {_target} > {_current}:
                 play sound "block.note_block.bass" with pitch 0.5 to loop-player
-                send title "&c✗ Locked" with subtitle "&7You haven't reached CP %{_target}%" to loop-player
+                send title "&cLocked" with subtitle "&7Haven't reached CP %{_target}%" to loop-player
                 continue
 
             if {cp.warp::%{_target}%} is set:
@@ -427,10 +427,10 @@ command /back [<integer>]:
                 log "%{_output}%" to "cp_overlay_data.log"
                 play sound "entity.enderman.teleport" to loop-player
                 show 20 of portal particle at loop-player offset by vector(0.3, 0.8, 0.3)
-                send title "&e↩ CP %{_target}%" with subtitle "&7Rolled back" to loop-player
+                send title "&eCP %{_target}%" with subtitle "&7Rolled back" to loop-player
             else:
                 play sound "block.note_block.bass" with pitch 0.5 to loop-player
-                send title "&c✗ Lost" with subtitle "&7CP %{_target}% has no save" to loop-player
+                send title "&cLost" with subtitle "&7CP %{_target}% has no save" to loop-player
 
 #################################
 # CURRENT CHECKPOINT
@@ -443,7 +443,7 @@ command /cp:
 
             if {cp.last::%loop-player%} is not set:
                 play sound "block.note_block.bass" with pitch 0.5 to loop-player
-                send title "&c✗ No CP" with subtitle "&7No checkpoint saved" to loop-player
+                send title "&cNo CP" with subtitle "&7No checkpoint saved" to loop-player
                 continue
 
             set {_current} to {cp.last::%loop-player%}
@@ -452,17 +452,17 @@ command /cp:
                 teleport loop-player to spawn location of world "world"
                 play sound "entity.enderman.teleport" to loop-player
                 show 30 of portal particle at loop-player offset by vector(0.5, 1, 0.5)
-                send title "&a↩ Spawn" with subtitle "&7Back to start" to loop-player
+                send title "&aSpawn" with subtitle "&7Back to start" to loop-player
                 continue
 
             if {cp.warp::%{_current}%} is set:
                 teleport loop-player to {cp.warp::%{_current}%}
                 play sound "entity.enderman.teleport" to loop-player
                 show 30 of portal particle at loop-player offset by vector(0.5, 1, 0.5)
-                send title "&a↩ CP %{_current}%" with subtitle "&7Returned" to loop-player
+                send title "&aCP %{_current}%" with subtitle "&7Returned" to loop-player
             else:
                 play sound "block.note_block.bass" with pitch 0.5 to loop-player
-                send title "&c✗ Lost" with subtitle "&7CP %{_current}% has no save" to loop-player
+                send title "&cLost" with subtitle "&7CP %{_current}% has no save" to loop-player
 
 
 #################################
@@ -488,7 +488,7 @@ command /restart:
             play sound "block.note_block.bass" with pitch 0.6 to loop-player
             play sound "entity.ghast.ambient" at volume 0.6 with pitch 1.2 to loop-player
             show 80 of smoke particle at loop-player offset by vector(0.8, 1.5, 0.8)
-            send title "&8» Reset" with subtitle "&7Back to zero" to loop-player
+            send title "&8Reset" with subtitle "&7Back to zero" to loop-player
 
 #################################
 # FUN COMMANDS
@@ -524,19 +524,19 @@ command /fly <integer>:
                 play sound "entity.bat.takeoff" to loop-player
                 play sound "entity.illusioner.cast_spell" with pitch 1.2 to loop-player
                 show 40 of cloud particle at loop-player offset by vector(0.5, 0.5, 0.5)
-                send action bar "&b✦ Fly &7%arg-1%s" to loop-player
+                send action bar "&bFly &7%arg-1%s" to loop-player
 
 every 1 second:
     loop all players:
         if {fly.time::%loop-player%} > 0:
             remove 1 from {fly.time::%loop-player%}
-            send title "&b✦" with subtitle "&7%{fly.time::%loop-player%}%s" to loop-player for 1.2 seconds
+            send title "&b~" with subtitle "&7%{fly.time::%loop-player%}%s" to loop-player for 1.2 seconds
             play sound "block.amethyst_block.chime" with pitch 1.3 to loop-player
             if {fly.time::%loop-player%} <= 0:
                 set loop-player's flight mode to false
                 play sound "entity.bat.death" to loop-player
                 show 30 of cloud particle at loop-player offset by vector(0.5, 0.5, 0.5)
-                send title "&8↓ Landing" with subtitle "&7Fly time ended" to loop-player for 2 seconds
+                send title "&8Landing" with subtitle "&7Fly time ended" to loop-player for 2 seconds
 
 # =======================================
 #  TNTZ - Launch players into the air
@@ -600,7 +600,7 @@ command /chickenride:
             execute console command "data merge entity %uuid of {_chicken}% {Tags:['cutscene_chicken'],Silent:1b,Invulnerable:1b,NoGravity:1b,PersistenceRequired:1b}"
 
             make loop-player ride {_chicken}
-            send title "&e&l✦ Chicken Ride" with subtitle "&7To CP %{_nextCP}%" to loop-player for 2 seconds
+            send title "&e&lChicken Ride" with subtitle "&7To CP %{_nextCP}%" to loop-player for 2 seconds
 
             set {_currentLoc} to {_startLoc}
         
