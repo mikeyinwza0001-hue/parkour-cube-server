@@ -16,8 +16,8 @@ on join:
 function giveParkourEffects(p: player):
     execute console command "effect give %{_p}% night_vision 999999 0 true"
     execute console command "effect give %{_p}% saturation 999999 0 true"
-    if {_p} does not have compass named "&e&l喔⑧箟喔�笝喔佮弗喔编笟喔堗父喔?Checkpoint (Right Click)":
-        set slot 8 of {_p} to compass named "&e&l喔⑧箟喔�笝喔佮弗喔编笟喔堗父喔?Checkpoint (Right Click)" with lore "&7喔勦弗喔脆竵喔傕抚喔侧箑喔炧阜喙堗腑喔⑧箟喔�笝喔佮弗喔编笟喙勦笡喔堗父喔?Checkpoint 喔ム箞喔侧釜喔膏笖"
+    if {_p} does not have compass named "&e&lCheckpoint (Right Click)":
+        set slot 8 of {_p} to compass named "&e&lCheckpoint (Right Click)" with lore "&7Right-click to return to your last checkpoint"
 
 every 5 seconds:
     loop all players:
@@ -25,19 +25,19 @@ every 5 seconds:
             execute console command "effect give %loop-player% night_vision 999999 0 true"
         if loop-player does not have saturation:
             execute console command "effect give %loop-player% saturation 999999 0 true"
-        if loop-player does not have compass named "&e&l喔⑧箟喔�笝喔佮弗喔编笟喔堗父喔?Checkpoint (Right Click)":
-            set slot 8 of loop-player to compass named "&e&l喔⑧箟喔�笝喔佮弗喔编笟喔堗父喔?Checkpoint (Right Click)" with lore "&7喔勦弗喔脆竵喔傕抚喔侧箑喔炧阜喙堗腑喔⑧箟喔�笝喔佮弗喔编笟喙勦笡喔堗父喔?Checkpoint 喔ム箞喔侧釜喔膏笖"
+        if loop-player does not have compass named "&e&lCheckpoint (Right Click)":
+            set slot 8 of loop-player to compass named "&e&lCheckpoint (Right Click)" with lore "&7Right-click to return to your last checkpoint"
 
 #################################
 # CHECKPOINT ITEM RETURN
 #################################
 
 on right click with compass:
-    if name of player's tool is "&e&l喔⑧箟喔�笝喔佮弗喔编笟喔堗父喔?Checkpoint (Right Click)":
+    if name of player's tool is "&e&lCheckpoint (Right Click)":
         cancel event
         if {cp.last::%player%} is not set:
             play sound "entity.villager.no" to player
-            send title "&c喔溹复喔斷笧喔ム覆喔? with subtitle "&c喔勦父喔撪涪喔编竾喙勦浮喙堗箑喔勦涪喙€喔�涪喔掂涪喔?Checkpoint" to player
+            send title "&cError" with subtitle "&cYou have not touched a Checkpoint yet" to player
             stop
             
         set {_cp} to {cp.last::%player%}
@@ -50,7 +50,7 @@ on right click with compass:
                 play sound "entity.enderman.teleport" to player
             else:
                 play sound "entity.villager.no" to player
-                send title "&c喔溹复喔斷笧喔ム覆喔? with subtitle "&c喙勦浮喙堗笧喔氞笧喔脆竵喔编笖喔堗父喔斷箑喔嬥笩" to player
+                send title "&cError" with subtitle "&cCheckpoint save location not found" to player
                 
 #################################
 # REGISTER BEACON
@@ -64,13 +64,13 @@ command /registercp <number>:
 
             if block below loop-player is not beacon:
                 play sound "entity.villager.no" to loop-player
-                send title "&c喔溹复喔斷笧喔ム覆喔? with subtitle "&c喔曕箟喔�竾喔⑧阜喔權笟喔?Beacon" to loop-player
+                send title "&cError" with subtitle "&cYou must stand on a Beacon" to loop-player
                 continue
             set {_loc} to location of block below loop-player
             set {cp.beacon::%{_loc}%} to arg-1
             set {cp.warp::%arg-1%} to location of loop-player
             play sound "entity.experience_orb.pickup" to loop-player
-            send title "&a喔�赋喙€喔｀箛喔? with subtitle "&eRegister CP %arg-1%" to loop-player
+            send title "&aSuccess" with subtitle "&eRegister CP %arg-1%" to loop-player
 
 
 #################################
@@ -85,7 +85,7 @@ command /setfinalcp <number>:
 
             set {cp.final} to arg-1
             play sound "entity.player.levelup" to loop-player
-            send title "&e喔�赋喙€喔｀箛喔? with subtitle "&aFinal CP = %arg-1%" to loop-player
+            send title "&eSuccess" with subtitle "&aFinal CP = %arg-1%" to loop-player
 
 
 #################################
@@ -124,12 +124,10 @@ on player move:
     else if block west of player is lava:
         set {_isLava} to true
     if {_isLava} is true:
-        # Waterfall = 喔ム覆喔о覆喔堗覆喔佮箑喔炧笖喔侧笝 + 喔曕副喔о腑喔⑧腹喙堗箖喔權弗喔侧抚喔?鈫?trigger 喙€喔�浮喔?
         set {_isWaterfall} to false
         if block above player is lava:
             if block at player is lava:
                 set {_isWaterfall} to true
-        # Exclusions (喔傕箟喔侧浮喔栢箟喔侧箑喔涏箛喔?waterfall)
         if {_isWaterfall} is not true:
             if player's tool is warped fungus on a stick:
                 stop
@@ -190,12 +188,12 @@ on player move:
                 if block below player is not beacon:
                     delete {cp.counting::%player%}
                     play sound "entity.villager.no" to player
-                    send title "&c&l喔⑧竵喙€喔ム复喔? to player
+                    send title "&c&lCancelled" to player
                     stop
 
                 set {_left} to 11 - loop-number
 
-                send title "&c&l%{_left}%" with subtitle "&e喔佮赋喔ム副喔囙笀喔班笂喔權赴喙冟笝喔�傅喔? to player
+                send title "&c&l%{_left}%" with subtitle "&eAbout to win in..." to player
 
                 if {_left} > 3:
                     play sound "block.note_block.hat" to player
@@ -228,7 +226,7 @@ on player move:
             execute console command "particle minecraft:firework ~ ~1 ~ 0.5 0.5 0.5 0.01 200 force %player%"
             play sound "ui.toast.challenge_complete" to player
 
-            send title "&6&l喙€喔佮箞喔囙笀喔编竾喙€喔ム涪喙勦腑喔曕箟喔侧抚!" to player
+            send title "&6&lYOU WIN!" to player
 
             set {cp.last::%player%} to 0
             set {checkpoint::%player%} to 0
@@ -240,13 +238,9 @@ on player move:
 
             stop
                         
-        # 喔栢箟喔侧涪喔编竾喙勦浮喙堗箑喔勦涪喔∴傅喔勦箞喔?
         if {cp.last::%player%} is not set:
             set {cp.last::%player%} to 0
 
-        # ===== 喔斷箞喔侧笝喔涏竵喔曕复 =====
-
-        # 喔栢箟喔侧箑喔�涪喔掂涪喔?CP 喙€喔斷复喔?鈫?喙勦浮喙堗笚喔赤竾喔侧笝
         if {_cp} = {cp.last::%player%}:
             stop
 
@@ -260,10 +254,10 @@ on player move:
 
         if {_cp} > {_previous}:
             play sound "entity.player.levelup" to player
-            send title "&a喔斷箞喔侧笝喔椸傅喙? with subtitle "&e%{_cp}%" to player
+            send title "&aCheckpoint!" with subtitle "&e%{_cp}%" to player
         else:
             play sound "block.note_block.pling" to player
-            send title "&e喔佮弗喔编笟喔∴覆喔椸赋喔∴父喔? with subtitle "&eCheckpoint %{_cp}%" to player
+            send title "&eBack to checkpoint" with subtitle "&eCheckpoint %{_cp}%" to player
 
 #################################
 # DEATH WARP
@@ -292,31 +286,25 @@ command /goto60:
 
                 play sound "entity.ender_dragon.growl" to loop-player
             
-                # 1. Setup locations
                 set {_startLoc} to location(15.5, 68, -49.5, world "world")
                 set {_targetLoc} to {cp.warp::60}
             
-                # Setup peak altitude for parabolic flight (Current Y + 200 blocks up to dodge buildings)
                 set {_peakY} to y-coordinate of {_startLoc} + 200
             
-                # Distance math for Phase 2 (Horizontal Flight)
                 set {_xDiff} to x-coordinate of {_targetLoc} - x-coordinate of {_startLoc}
                 set {_zDiff} to z-coordinate of {_targetLoc} - z-coordinate of {_startLoc}
                 set {_diveDiff} to {_peakY} - y-coordinate of {_targetLoc}
             
-                # Speed/Steps (Adjusted to 40-40-40 for a smooth 6-second flight)
                 set {_phase1Steps} to 40
                 set {_phase2Steps} to 40
                 set {_phase3Steps} to 40
             
-                # Phase 1 and 2 both move horizontally, so divide X/Z diff by their combined steps (80)
                 set {_yUpStep} to 200 / {_phase1Steps}
                 set {_totalForwardSteps} to {_phase1Steps} + {_phase2Steps}
                 set {_xStep} to {_xDiff} / {_totalForwardSteps}
                 set {_zStep} to {_zDiff} / {_totalForwardSteps}
                 set {_yDownStep} to {_diveDiff} / {_phase3Steps}
             
-                # 2. Spawn Dragon and Mount
                 spawn 1 ender dragon at {_startLoc}
                 set {_dragon} to last spawned entity
                 execute console command "data merge entity %uuid of {_dragon}% {Tags:['cutscene_dragon'],Silent:1b,Invulnerable:1b,NoGravity:1b,PersistenceRequired:1b,DragonPhase:10}"
@@ -324,19 +312,13 @@ command /goto60:
                 teleport loop-player to {_startLoc}
                 make loop-player ride {_dragon}
             
-                send title "&x&3&9&F&F&1&4&l喙勦笡喔佮副喔權箑喔ム涪喔權箟喔�竾!" to loop-player for 3 seconds
+                send title "&x&3&9&F&F&1&4&lFLYING TO FINAL!" to loop-player for 3 seconds
             
-                # Calculate an estimated yaw for the flight
-                # The general facing direction for the target tower is 180 (North).
                 set {_facingYaw} to 180
             
-                # 3. Flight Animation Loop Setup
                 set {_currentLoc} to {_startLoc}
             
-                # Phase 1: Diagonal Ascent
-                # The user requested 180 (North) for the ascent phase
                 set yaw of {_currentLoc} to 180
-                # Keep pitch exactly flat (0) as requested by the user, while using DragonPhase:0 so it doesn't force its head down looking for the ground.
                 set pitch of {_currentLoc} to 0
                 loop {_phase1Steps} times:
                     add {_xStep} to x-coordinate of {_currentLoc}
@@ -349,7 +331,6 @@ command /goto60:
                     show 10 of flame particle at location of {_dragon} offset by vector(1, 0.5, 1)
                     wait 1 tick
                 
-                # Phase 2: Horizontal Rush
                 set pitch of {_currentLoc} to 0
                 loop {_phase2Steps} times:
                     add {_xStep} to x-coordinate of {_currentLoc}
@@ -360,7 +341,6 @@ command /goto60:
                     show 50 of cloud particle at location of {_dragon} offset by vector(2, 0.5, 2)
                     wait 1 tick
                 
-                # Phase 3: Dive Down
                 set pitch of {_currentLoc} to 60
                 loop {_phase3Steps} times:
                     remove {_yDownStep} from y-coordinate of {_currentLoc}
@@ -370,7 +350,6 @@ command /goto60:
                     show 20 of portal particle at location of {_dragon} offset by vector(1, 1, 1)
                     wait 1 tick
                 
-                # 4. Flash and Clean up
                 play sound "entity.enderman.teleport" to loop-player
                 show 200 of portal particle at location of loop-player offset by vector(2,2,2)
             
@@ -388,7 +367,7 @@ command /goto60:
                 show 120 of reverse portal particle at location of loop-player offset by vector(0,1,0)
                 play sound "entity.player.levelup" to loop-player
 
-                send title "&x&3&9&F&F&1&4&l喔栢付喔囙箒喔ム箟喔о笝喙夃腑喔?" to loop-player for 2 seconds
+                send title "&x&3&9&F&F&1&4&lYOU REACHED THE TOP!" to loop-player for 2 seconds
                 send subtitle "&aCheckpoint 60" to loop-player for 2 seconds
 
                 set {cp.last::%loop-player%} to 60
@@ -398,7 +377,8 @@ command /goto60:
 
             else:
                 play sound "entity.villager.no" to loop-player
-                send title "&c喔溹复喔斷笧喔ム覆喔? with subtitle "&c喔⑧副喔囙箘喔∴箞喙勦笖喙?register Checkpoint 60" to loop-player
+                send title "&cError" with subtitle "&cCheckpoint 60 has not been registered yet" to loop-player
+
 #################################
 # BACK
 #################################
@@ -410,7 +390,7 @@ command /back [<integer>]:
 
             if {cp.last::%loop-player%} is not set:
                 play sound "entity.villager.no" to loop-player
-                send title "&c喔溹复喔斷笧喔ム覆喔? with subtitle "&c喔⑧副喔囙箘喔∴箞喔∴傅 checkpoint" to loop-player
+                send title "&cError" with subtitle "&cYou have no checkpoint" to loop-player
                 continue
 
             set {_current} to {cp.last::%loop-player%}
@@ -422,12 +402,12 @@ command /back [<integer>]:
 
             if {_target} <= 0:
                 play sound "entity.villager.no" to loop-player
-                send title "&c喔溹复喔斷笧喔ム覆喔? with subtitle "&c喙勦浮喙堗浮喔?checkpoint 喔佮箞喔�笝喔�笝喙夃覆" to loop-player
+                send title "&cError" with subtitle "&cNo previous checkpoint available" to loop-player
                 continue
             
             if {_target} > {_current}:
                 play sound "entity.villager.no" to loop-player
-                send title "&c喔溹复喔斷笧喔ム覆喔? with subtitle "&c喔勦父喔撪涪喔编竾喙勦浮喙堗笘喔多竾喔斷箞喔侧笝 %{_target}%" to loop-player
+                send title "&cError" with subtitle "&cYou have not reached checkpoint %{_target}% yet" to loop-player
                 continue
 
             if {cp.warp::%{_target}%} is set:
@@ -438,10 +418,10 @@ command /back [<integer>]:
                 set {_output} to "%{_target}%/60"
                 log "%{_output}%" to "cp_overlay_data.log"
                 play sound "entity.enderman.teleport" to loop-player
-                send title "&e喔⑧箟喔�笝喔佮弗喔编笟" with subtitle "&eCheckpoint %{_target}%" to loop-player
+                send title "&eGo back" with subtitle "&eCheckpoint %{_target}%" to loop-player
             else:
                 play sound "entity.villager.no" to loop-player
-                send title "&c喔溹复喔斷笧喔ム覆喔? with subtitle "&c喙勦浮喙堗笧喔氞笀喔膏笖喙€喔嬥笩喔傕腑喔?Checkpoint %{_target}%!" to loop-player
+                send title "&cError" with subtitle "&cSave location for Checkpoint %{_target}% not found!" to loop-player
 
 #################################
 # CURRENT CHECKPOINT
@@ -454,7 +434,7 @@ command /cp:
 
             if {cp.last::%loop-player%} is not set:
                 play sound "entity.villager.no" to loop-player
-                send title "&c喔溹复喔斷笧喔ム覆喔? with subtitle "&c喔⑧副喔囙箘喔∴箞喔∴傅 checkpoint" to loop-player
+                send title "&cError" with subtitle "&cYou have no checkpoint" to loop-player
                 continue
 
             set {_current} to {cp.last::%loop-player%}
@@ -462,16 +442,16 @@ command /cp:
             if {_current} <= 0:
                 teleport loop-player to spawn location of world "world"
                 play sound "entity.enderman.teleport" to loop-player
-                send title "&a喔佮弗喔编笟喔∴覆喔⑧副喔? with subtitle "&a喔堗父喔斷箑喔｀复喙堗浮喔曕箟喔? to loop-player
+                send title "&aBack to Start" with subtitle "&aReturned to spawn" to loop-player
                 continue
 
             if {cp.warp::%{_current}%} is set:
                 teleport loop-player to {cp.warp::%{_current}%}
                 play sound "entity.enderman.teleport" to loop-player
-                send title "&a喔堗赴喙勦笡喙勦斧喔權笀喙娻赴" to loop-player
+                send title "&aReturned to checkpoint" to loop-player
             else:
                 play sound "entity.villager.no" to loop-player
-                send title "&c喔溹复喔斷笧喔ム覆喔? with subtitle "&c喙勦浮喙堗笧喔氞笀喔膏笖喙€喔嬥笩喔傕腑喔?Checkpoint %{_current}%!" to loop-player
+                send title "&cError" with subtitle "&cSave location for Checkpoint %{_current}% not found!" to loop-player
 
 
 #################################
@@ -490,7 +470,7 @@ command /restart:
             teleport loop-player to spawn location of world "world"
             giveParkourEffects(loop-player)
             play sound "block.note_block.pling" to loop-player
-            send title "&a喙€喔｀复喙堗浮喔曕箟喔權箖喔�浮喙? to loop-player
+            send title "&aRestarted" to loop-player
 
 #################################
 # FUN COMMANDS
@@ -503,7 +483,7 @@ command /trapweb:
 
             set block at loop-player to cobweb
             add location of loop-player to {_webs::*}
-            send action bar "&a喔�福喙夃覆喔囙箖喔⑧箒喔∴竾喔∴父喔∴笚喔掂箞喔曕副喔о竸喔膏笓喙佮弗喙夃抚!" to loop-player
+            send action bar "&aTrapped in cobweb!" to loop-player
             
         wait 5 seconds
         loop {_webs::*}:
@@ -516,12 +496,12 @@ command /fly <integer>:
         loop all players:
             if {fly.time::%loop-player%} > 0:
                 add arg-1 to {fly.time::%loop-player%}
-                send action bar "&a喙€喔炧复喙堗浮喙€喔о弗喔侧笟喔脆笝喔�傅喔?&e%arg-1% &a喔о复喔權覆喔椸傅! &7(喔｀抚喔? &e%{fly.time::%loop-player%}% &a喔о复喔權覆喔椸傅)" to loop-player
+                send action bar "&aAdded &e%arg-1% &aseconds of fly! &7(Total: &e%{fly.time::%loop-player%}% &aseconds)" to loop-player
                 play sound "entity.player.levelup" to loop-player
             else:
                 set {fly.time::%loop-player%} to arg-1
                 set loop-player's flight mode to true
-                send action bar "&a喔勦父喔撪箘喔斷箟喔｀副喔氞釜喔栢覆喔權赴喔氞复喔?&e%arg-1% &a喔о复喔權覆喔椸傅!" to loop-player
+                send action bar "&aFly mode ON for &e%arg-1% &aseconds!" to loop-player
                 play sound "entity.illusioner.cast_spell" to loop-player
                 play sound "entity.player.levelup" to loop-player
 
@@ -529,47 +509,43 @@ every 1 second:
     loop all players:
         if {fly.time::%loop-player%} > 0:
             remove 1 from {fly.time::%loop-player%}
-            send title "&a鉁? with subtitle "&e喙€喔�弗喔粪腑喙€喔о弗喔? &c%{fly.time::%loop-player%}%" to loop-player for 1.2 seconds
+            send title "&a✓" with subtitle "&eTime remaining: &c%{fly.time::%loop-player%}%" to loop-player for 1.2 seconds
             play sound "block.amethyst_block.chime" to loop-player
             play sound "entity.experience_orb.pickup" to loop-player
             if {fly.time::%loop-player%} <= 0:
                 set loop-player's flight mode to false
-                send title "&c喔�浮喔斷箑喔о弗喔?" with subtitle "&7喔｀赴喔о副喔囙福喙堗抚喔囙竾喔囙竾" to loop-player for 2 seconds
+                send title "&cFly ended" with subtitle "&7Landing now..." to loop-player for 2 seconds
                 play sound "entity.villager.no" to loop-player
 
 # =======================================
-#  TNTZ - 喔｀赴喙€喔氞复喔斷箑喔斷箟喔囙釜喔膏箞喔∴笚喔脆辅喔椸覆喔?
-#  /tntz <喔堗赋喔權抚喔?
+#  TNTZ - Launch players into the air
+#  /tntz <amount>
 # =======================================
 
 command /tntz <integer>:
-    permission: op # 喔曕副喙夃竾喔勦箞喔侧釜喔脆笚喔樴复喙屶竵喔侧福喙冟笂喙夃竸喔赤釜喔编箞喔?
-    usage: &c喔椸福喔脆竸喔佮覆喔｀箖喔娻箟: /tntz <喔堗赋喔權抚喔?
+    permission: op
+    usage: &c Usage: /tntz <amount>
     trigger:
         set {_amt} to arg-1
         
         if {_amt} < 1:
-            send "&c喔堗赋喔權抚喔權笗喙夃腑喔囙浮喔侧竵喔佮抚喙堗覆 0" to sender
+            send "&c Amount must be greater than 0" to sender
             stop
 
         loop all players:
             set {_targetPlayer} to loop-player
 
         loop {_amt} times:
-            # 喔佮赋喔�笝喔斷笀喔膏笖喔｀赴喙€喔氞复喔斷箑喔�笝喔粪腑喔溹腹喙夃箑喔ム箞喔權箑喔ム箛喔佮笝喙夃腑喔?
             set {_loc} to location of {_targetPlayer}
             add 2 to y-coordinate of {_loc}
             
-            # 喔�父喙堗浮喔椸复喔ㄠ笚喔侧竾喙佮福喔囙竵喔｀赴喙佮笚喔?
             set {_vx} to (random number between -1.2 and 1.2)
             set {_vy} to (random number between 0.8 and 1.8)
             set {_vz} to (random number between -1.2 and 1.2)
             
-            # 喔斷副喔?players 喔椸父喔佮竸喔權箖喔權福喔编辅喔∴傅 15 喙€喔∴笗喔｀笖喙夃抚喔⑧箒喔｀竾喔�父喙堗浮
             loop all players within 15 meters of {_loc}:
                 push loop-player vector({_vx}, {_vy}, {_vz}) at speed 1.5
             
-            # 喙€喔�笩喙€喔熰竵喔曕箤喔｀赴喙€喔氞复喔?(particle + 喙€喔�傅喔⑧竾, 喙勦浮喙堗浮喔?entity 喔堗福喔脆竾 鈫?喙勦浮喙堗浮喔掂竸喙夃覆喔囙箖喔?world)
             execute console command "execute at %uuid of {_targetPlayer}% run particle minecraft:explosion_emitter ~ ~2 ~ 0 0 0 1 1 force @a"
             loop all players within 30 meters of {_loc}:
                 play sound "entity.experience_orb.pickup" with volume 2.0 and pitch 2.0 at {_loc} for loop-player
@@ -583,13 +559,12 @@ command /chickenride:
 
             set {_nextCP} to {cp.last::%loop-player%} + 1
             if {cp.warp::%{_nextCP}%} is not set:
-                send action bar "&c喔勦父喔撪腑喔⑧腹喙堗笖喙堗覆喔權弗喙堗覆喔�父喔斷箒喔ム箟喔?喙勦浮喙堗浮喔掂笖喙堗覆喔權笗喙堗腑喙勦笡!" to loop-player
+                send action bar "&cNext checkpoint not registered yet!" to loop-player
                 continue
 
             set {_startLoc} to location of loop-player
             set {_targetLoc} to {cp.warp::%{_nextCP}%}
 
-            # Math setup
             set {_xDiff} to x-coordinate of {_targetLoc} - x-coordinate of {_startLoc}
             set {_yDiff} to y-coordinate of {_targetLoc} - y-coordinate of {_startLoc}
             set {_zDiff} to z-coordinate of {_targetLoc} - z-coordinate of {_startLoc}
@@ -604,7 +579,7 @@ command /chickenride:
             execute console command "data merge entity %uuid of {_chicken}% {Tags:['cutscene_chicken'],Silent:1b,Invulnerable:1b,NoGravity:1b,PersistenceRequired:1b}"
 
             make loop-player ride {_chicken}
-            send title "&e&l喔佮福喔班笗喙娻覆喔? 喙勦笡喔斷箞喔侧笝喔曕箞喔�箘喔?" to loop-player for 2 seconds
+            send title "&e&lChicken Ride!" with subtitle "&eFly to next checkpoint!" to loop-player for 2 seconds
 
             set {_currentLoc} to {_startLoc}
         
