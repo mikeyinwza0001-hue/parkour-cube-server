@@ -497,32 +497,34 @@ command /restart:
 command /trapweb:
     executable by: players and console
     trigger:
+        delete {trapweb.locs::*}
         loop all players:
-
-            set {_pLoc} to location of loop-player
-            if block at {_pLoc} is air:
-                set block at {_pLoc} to cobweb
-                add {_pLoc} to {_webs::*}
+            set {_foot} to location of loop-player
+            set {_body} to location(x-coordinate of {_foot}, y-coordinate of {_foot} + 1, z-coordinate of {_foot}, world of loop-player)
+            if block at {_body} is air:
+                set block at {_body} to cobweb
+                add {_body} to {trapweb.locs::*}
+            else if block at {_foot} is air:
+                set block at {_foot} to cobweb
+                add {_foot} to {trapweb.locs::*}
             else:
-                set {_placed} to false
-                loop 10 times:
-                    if {_placed} is true:
-                        exit loop
+                loop 20 times:
                     set {_rx} to (random integer between -2 and 2)
                     set {_rz} to (random integer between -2 and 2)
-                    set {_tryLoc} to location({x-coordinate of {_pLoc}} + {_rx}, {y-coordinate of {_pLoc}}, {z-coordinate of {_pLoc}} + {_rz}, world "world")
-                    if block at {_tryLoc} is air:
-                        set block at {_tryLoc} to cobweb
-                        add {_tryLoc} to {_webs::*}
-                        set {_placed} to true
+                    set {_try} to location(x-coordinate of {_foot} + {_rx}, y-coordinate of {_foot} + 1, z-coordinate of {_foot} + {_rz}, world of loop-player)
+                    if block at {_try} is air:
+                        set block at {_try} to cobweb
+                        add {_try} to {trapweb.locs::*}
+                        exit loop
             play sound "entity.spider.ambient" with pitch 1.3 to loop-player
             show 20 of white ash particle at loop-player offset by vector(0.3, 0.5, 0.3)
             send action bar "&7Caught!" to loop-player
-            
+
         wait 5 seconds
-        loop {_webs::*}:
+        loop {trapweb.locs::*}:
             if block at loop-value is cobweb:
                 set block at loop-value to air
+        delete {trapweb.locs::*}
 
 command /fly <integer>:
     executable by: players and console
