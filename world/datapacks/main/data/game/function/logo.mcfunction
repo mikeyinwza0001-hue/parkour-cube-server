@@ -1,0 +1,2 @@
+data merge entity @e[tag=logo,limit=1,nbt=!{Item:{id:"minecraft:filled_map"}}] {Item:{count:1,id:"filled_map",components:{"minecraft:map_id":0}},ItemRotation:4b,Invisible:1b}
+data merge entity @e[tag=logo,limit=1] {ItemRotation:4b}

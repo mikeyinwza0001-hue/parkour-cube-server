@@ -1,0 +1,2 @@
+execute if block 41 125 51 oak_button[powered=true] run function game:10/railway/lamp/lit
+execute as @e[x=42,y=124,z=50,dx=-1,dy=0,dz=0,tag=10_minecart,tag=!tnt_minecart2] if block 41 125 52 redstone_lamp[lit=true] run function game:10/railway/lamp/recover

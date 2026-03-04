@@ -1,0 +1,27 @@
+{
+    "display": {
+        "title": {
+            "text": "Rank",
+            "color": "yellow",
+            "bold": true
+        },
+        "description": {
+            "text": "Try to reach the end faster and get a higher rank!",
+            "color": "white",
+            "bold": false
+        },
+        "icon": {
+            "id": "minecraft:clock"
+        },
+        "frame": "task",
+        "show_toast": false,
+        "announce_to_chat": false,
+        "hidden": true,
+        "background": "gui/advancements/backgrounds/stone"
+    },
+    "criteria": {
+        "root": {
+            "trigger": "minecraft:tick"
+        }
+    }
+}

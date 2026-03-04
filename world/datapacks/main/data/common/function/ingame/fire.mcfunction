@@ -1,0 +1,1 @@
+execute as @a run attribute @s burning_time base set 0

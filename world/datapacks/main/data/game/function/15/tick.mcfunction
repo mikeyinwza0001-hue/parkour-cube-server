@@ -1,0 +1,1 @@
+function game:15/pillar/tick

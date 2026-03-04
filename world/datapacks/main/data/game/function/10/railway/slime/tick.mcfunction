@@ -1,0 +1,2 @@
+execute if entity @a[x=70,y=106,z=-5,dx=-93,dy=47,dz=91] unless entity @e[tag=10_slime] run function game:10/railway/slime/summon
+execute unless entity @a[x=70,y=106,z=-5,dx=-93,dy=47,dz=91] if entity @e[tag=10_slime] run function game:10/railway/slime/kill

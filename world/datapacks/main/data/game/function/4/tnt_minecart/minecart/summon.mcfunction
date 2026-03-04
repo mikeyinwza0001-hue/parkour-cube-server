@@ -1,0 +1,1 @@
+summon minecart ~ ~ ~ {CustomDisplayTile:true,DisplayState:{Name:"minecraft:tnt"},DisplayOffset:6,Tags:["tntminecart1","movetype5"],Motion:[0.0,0.0,0.1]}

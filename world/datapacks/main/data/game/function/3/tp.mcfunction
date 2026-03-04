@@ -1,0 +1,1 @@
+execute as @a[x=13,y=-6,z=33,dx=1,dy=2,dz=0] at @s run tp @s ~32 ~4 ~-8 ~ ~

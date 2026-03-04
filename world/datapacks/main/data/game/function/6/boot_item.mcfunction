@@ -1,0 +1,6 @@
+execute unless entity @e[tag=snow_boot_item] if entity @a[x=28,y=47,z=46,distance=..20] run summon item 28 47 46 {Item:{id:"leather_boots",count:1b,components:{item_name:{"text": "Leather Boots","italic": false,"bold": true,"color": "white"},tooltip_display:{hidden_components:["unbreakable","enchantments"]},enchantments:{"binding_curse":1,"vanishing_curse":1}}},Tags:["ingame","snow_boot_item"],PickupDelay:-32767}
+execute if entity @e[tag=snow_boot_item] unless entity @a[x=28,y=47,z=46,distance=..20] run kill @e[tag=snow_boot_item]
+execute as @e[tag=snow_boot_item] run data merge entity @s {PickupDelay:-999999999}
+
+execute as @a[x=28,y=47,z=46,dx=0,dy=0,dz=0] unless items entity @s armor.feet *[custom_data={snow_boot:true}] run playsound item.armor.equip_leather master @s ~ ~ ~ 1 1
+execute as @a[x=28,y=47,z=46,dx=0,dy=0,dz=0] unless items entity @s armor.feet *[custom_data={snow_boot:true}] run item replace entity @s armor.feet with leather_boots[item_name={"text": "Leather Boots","italic": false,"bold": true,"color": "white"},tooltip_display={hidden_components:["unbreakable","enchantments"]},enchantments={"binding_curse":1,"vanishing_curse":1},custom_data={snow_boot:true}] 1

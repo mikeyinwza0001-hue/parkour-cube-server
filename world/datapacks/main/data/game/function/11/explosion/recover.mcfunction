@@ -1,0 +1,21 @@
+setblock 23 152 42 azalea_leaves
+setblock 23 153 42 azalea_leaves
+setblock 22 153 43 flowering_azalea_leaves
+setblock 22 152 43 flowering_azalea_leaves
+setblock 23 153 41 flowering_azalea_leaves
+setblock 24 153 41 azalea_leaves
+setblock 23 154 42 flowering_azalea_leaves
+setblock 23 154 41 azalea_leaves
+setblock 24 154 41 azalea_leaves
+setblock 22 154 42 azalea_leaves
+setblock 22 154 43 azalea_leaves
+setblock 22 155 42 flowering_azalea_leaves
+setblock 22 155 43 flowering_azalea_leaves
+setblock 23 155 41 flowering_azalea_leaves
+setblock 21 153 43 azalea_leaves
+setblock 21 154 43 flowering_azalea_leaves
+
+setblock 22 155 41 vine[east=true,south=true]
+setblock 21 155 42 vine[east=true,south=true]
+setblock 22 154 41 vine[east=true]
+setblock 22 153 42 vine[south=true]

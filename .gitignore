@@ -7,8 +7,6 @@ crash-reports/
 cache/
 versions/
 libraries/
-world/
-world_nether/
-world_the_end/
 .console_history
 usercache.json
+session.lock

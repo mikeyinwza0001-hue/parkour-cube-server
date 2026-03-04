@@ -1,0 +1,16 @@
+execute positioned 43 -11 26 run function game:3/wart2/block
+execute positioned 42 -11 25 run function game:3/wart2/block
+execute positioned 43 -11 25 run function game:3/wart2/block
+execute positioned 42 -11 26 run function game:3/wart2/block
+execute positioned 42 -11 24 run function game:3/wart2/block
+execute positioned 41 -11 25 run function game:3/wart2/block
+execute positioned 40 -11 22 run function game:3/wart2/block
+execute positioned 40 -11 23 run function game:3/wart2/block
+execute positioned 41 -11 22 run function game:3/wart2/block
+execute positioned 39 -11 23 run function game:3/wart2/block
+execute positioned 39 -11 26 run function game:3/wart2/block
+execute positioned 43 -11 22 run function game:3/wart2/block
+execute positioned 40 -11 20 run function game:3/wart2/block
+execute positioned 37 -11 22 run function game:3/wart2/block
+execute positioned 40 -11 27 run function game:3/wart2/block
+execute positioned 45 -11 26 run function game:3/wart2/block

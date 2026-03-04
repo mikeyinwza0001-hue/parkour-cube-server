@@ -94,12 +94,64 @@ command /setfinalcp <number>:
 
 on damage:
     if victim is a player:
-        set damage to 0
-        if {cp.counting::%victim%} is true:
-            delete {cp.counting::%victim%}
-            execute console command "bossbar remove cp_%victim%"
-            play sound "entity.villager.no" to victim
-            send title "&cยกเลิก!" to victim
+        if damage cause is void:
+            cancel event
+            extinguish victim
+            if {cp.last::%victim%} > 0:
+                set {_cp} to {cp.last::%victim%}
+                if {cp.warp::%{_cp}%} is set:
+                    teleport victim to {cp.warp::%{_cp}%}
+                else:
+                    teleport victim to spawn location of world "world"
+            else:
+                teleport victim to spawn location of world "world"
+            play sound "entity.enderman.teleport" to victim
+        else:
+            if damage cause is neither entity explosion nor block explosion:
+                set damage to 0
+on player move:
+    if {lava.warping::%player%} is true:
+        stop
+    set {_isLava} to false
+    if block at player is lava:
+        set {_isLava} to true
+    else if block north of player is lava:
+        set {_isLava} to true
+    else if block south of player is lava:
+        set {_isLava} to true
+    else if block east of player is lava:
+        set {_isLava} to true
+    else if block west of player is lava:
+        set {_isLava} to true
+    if {_isLava} is true:
+        # Waterfall = ลาวาจากเพดาน + ตัวอยู่ในลาวา → trigger เสมอ
+        set {_isWaterfall} to false
+        if block above player is lava:
+            if block at player is lava:
+                set {_isWaterfall} to true
+        # Exclusions (ข้ามถ้าเป็น waterfall)
+        if {_isWaterfall} is not true:
+            if player's tool is warped fungus on a stick:
+                stop
+            if player's vehicle is set:
+                if block below player is lava:
+                    stop
+        set {lava.warping::%player%} to true
+        play sound "entity.player.hurt" to player
+        play sound "block.fire.extinguish" to player
+        execute console command "particle minecraft:flame %player% 0.3 0.3 0.3 0.1 30 force %player%"
+        wait 10 ticks
+        extinguish player
+        if {cp.last::%player%} > 0:
+            set {_cp} to {cp.last::%player%}
+            if {cp.warp::%{_cp}%} is set:
+                teleport player to {cp.warp::%{_cp}%}
+            else:
+                teleport player to spawn location of world "world"
+        else:
+            teleport player to spawn location of world "world"
+        play sound "entity.enderman.teleport" to player
+        delete {lava.warping::%player%}
 
 
 #################################
@@ -131,6 +183,9 @@ on player move:
             execute console command "title %player% times 0 20 0"
 
             loop 10 times:
+
+                if {cp.counting::%player%} is not set:
+                    stop
 
                 if block below player is not beacon:
                     delete {cp.counting::%player%}
@@ -435,7 +490,7 @@ command /restart:
             teleport loop-player to spawn location of world "world"
             giveParkourEffects(loop-player)
             play sound "block.note_block.pling" to loop-player
-            send title "&aเริ่มต้นใหม่" with subtitle "&aรีเซ็ตด่านเรียบร้อย!" to loop-player
+            send title "&aเริ่มต้นใหม่" to loop-player
 
 #################################
 # FUN COMMANDS
@@ -447,7 +502,13 @@ command /trapweb:
         loop all players:
 
             set block at loop-player to cobweb
-            send "&aสร้างใยแมงมุมที่ตัวคุณแล้ว!" to loop-player
+            add location of loop-player to {_webs::*}
+            send action bar "&aสร้างใยแมงมุมที่ตัวคุณแล้ว!" to loop-player
+            
+        wait 5 seconds
+        loop {_webs::*}:
+            if block at loop-value is cobweb:
+                set block at loop-value to air
 
 command /fly <integer>:
     executable by: players and console
@@ -455,12 +516,12 @@ command /fly <integer>:
         loop all players:
             if {fly.time::%loop-player%} > 0:
                 add arg-1 to {fly.time::%loop-player%}
-                send "&aเพิ่มเวลาบินอีก &e%arg-1% &aวินาที! &7(รวม: &e%{fly.time::%loop-player%}% &aวินาที)" to loop-player
+                send action bar "&aเพิ่มเวลาบินอีก &e%arg-1% &aวินาที! &7(รวม: &e%{fly.time::%loop-player%}% &aวินาที)" to loop-player
                 play sound "entity.player.levelup" to loop-player
             else:
                 set {fly.time::%loop-player%} to arg-1
                 set loop-player's flight mode to true
-                send "&aคุณได้รับสถานะบิน &e%arg-1% &aวินาที!" to loop-player
+                send action bar "&aคุณได้รับสถานะบิน &e%arg-1% &aวินาที!" to loop-player
                 play sound "entity.illusioner.cast_spell" to loop-player
                 play sound "entity.player.levelup" to loop-player
 
@@ -476,19 +537,43 @@ every 1 second:
                 send title "&cหมดเวลา!" with subtitle "&7ระวังร่วงงงง" to loop-player for 2 seconds
                 play sound "entity.villager.no" to loop-player
 
-command /tnt <integer>:
-    executable by: players and console
+# =======================================
+#  TNTZ - ระเบิดเด้งสุ่มทิศทาง
+#  /tntz <จำนวน>
+# =======================================
+
+command /tntz <integer>:
+    permission: op # ตั้งค่าสิทธิ์การใช้คำสั่ง
+    usage: &cทริคการใช้: /tntz <จำนวน>
     trigger:
-        loop arg-1 times:
-            loop all players:
-                set {_loc} to location of loop-player
-                set {_offsetX} to a random number between -1.5 and 1.5
-                set {_offsetZ} to a random number between -1.5 and 1.5
-                add {_offsetX} to x-coordinate of {_loc}
-                add {_offsetZ} to z-coordinate of {_loc}
-                create a safe explosion of force 2 at {_loc}
-                send "&eตู้มมมมมม!!" to loop-player
-            wait 5 ticks
+        set {_amt} to arg-1
+        
+        if {_amt} < 1:
+            send "&cจำนวนต้องมากกว่า 0" to sender
+            stop
+            
+
+        
+        loop {_amt} times:
+            # กำหนดจุดระเบิดเหนือผู้เล่นเล็กน้อย
+            set {_loc} to location of player
+            add 2 to y-coordinate of {_loc}
+            
+            # สุ่มทิศทางแรงกระแทก
+            set {_vx} to (random number between -1.2 and 1.2)
+            set {_vy} to (random number between 0.8 and 1.8)
+            set {_vz} to (random number between -1.2 and 1.2)
+            
+            # ดัน players ทุกคนในรัศมี 15 เมตรด้วยแรงสุ่ม
+            loop all players within 15 meters of {_loc}:
+                push loop-player vector({_vx}, {_vy}, {_vz}) at speed 1.5
+            
+            # เอฟเฟกต์ระเบิด (particle + เสียง, ไม่มี entity จริง → ไม่มีค้างใน world)
+            execute console command "execute at %player% run particle minecraft:explosion_emitter ~ ~2 ~ 0 0 0 1 1 force @a"
+            loop all players within 30 meters of {_loc}:
+                play sound "entity.experience_orb.pickup" with volume 2.0 and pitch 2.0 at {_loc} for loop-player
+            
+            wait 2 ticks
 
 command /chickenride:
     executable by: players and console
@@ -497,7 +582,7 @@ command /chickenride:
 
             set {_nextCP} to {cp.last::%loop-player%} + 1
             if {cp.warp::%{_nextCP}%} is not set:
-                send "&cคุณอยู่ด่านล่าสุดแล้ว ไม่มีด่านต่อไป!" to loop-player
+                send action bar "&cคุณอยู่ด่านล่าสุดแล้ว ไม่มีด่านต่อไป!" to loop-player
                 continue
 
             set {_startLoc} to location of loop-player

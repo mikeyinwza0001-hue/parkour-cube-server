@@ -1,0 +1,1 @@
+kill @e[type=item,tag=!ingame,nbt=!{Item:{components:{"minecraft:custom_data":{ingame:true}}}}]

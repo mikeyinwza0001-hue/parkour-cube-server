@@ -1,0 +1,1 @@
+execute if block 42 -18 44 air run setblock 42 -18 44 acacia_pressure_plate

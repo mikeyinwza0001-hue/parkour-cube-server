@@ -1,0 +1,2 @@
+item replace entity @s armor.chest with minecraft:elytra[unbreakable={},tooltip_display={hidden_components:["enchantments","unbreakable"]},enchantment_glint_override=false,enchantments={binding_curse:1}]
+playsound item.armor.equip_elytra master @s ~ ~ ~ 9999 1

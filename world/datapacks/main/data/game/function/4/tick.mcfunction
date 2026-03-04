@@ -1,0 +1,1 @@
+function game:4/tnt_minecart/tick

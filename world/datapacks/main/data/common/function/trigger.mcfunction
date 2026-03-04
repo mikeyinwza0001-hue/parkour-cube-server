@@ -1,0 +1,62 @@
+scoreboard players enable @s show_pb
+execute if score @s show_pb matches 1.. if score @s pb matches 2147483647 run tellraw @s [{"text": "You don't have any PB yet.","color": "gray"}]
+execute if score @s show_pb matches 1.. unless score @s pb matches 2147483647 run tellraw @s [{"text": "Your PB: ","color": "gray"},{"score":{"objective":"pb_hour","name":"@s"},"color":"gold"},{"text":" hours ","color":"gold"},{"score":{"objective":"pb_min","name":"@s"},"color":"gold"},{"text":" minutes and ","color":"gold"},{"score":{"objective":"pb_sec","name":"@s"},"color":"gold"},{"text":".","color":"gold"},{"score":{"objective":"pb_dec","name":"@s"},"color":"gold"},{"text":" seconds.","color":"gold"}]
+execute unless score @s show_pb matches 0 run scoreboard players set @s show_pb 0
+
+
+scoreboard players enable @s reset_pb
+execute if score @s reset_pb matches 1.. run tellraw @s [{"text": "Your PB has been reset.","color": "gray"}]
+execute if score @s reset_pb matches 1.. run scoreboard players set @s pb 2147483647
+execute unless score @s reset_pb matches 0 run scoreboard players set @s reset_pb 0
+
+
+scoreboard players enable @a restart
+#normal
+## Restart Position
+execute if score @s restart matches 1.. as @s[team=!race] run tp @s 12 -60 7 0.0 30.0
+execute if score @s restart matches 1.. as @s[team=!race] run gamemode adventure @s
+execute if score @s restart matches 1.. as @s[team=!race] run effect clear @s
+execute if score @s restart matches 1.. as @s[team=!race] at @s run spawnpoint @s ~ ~ ~
+execute if score @s restart matches 1.. as @s[team=!race,team=!training_mode] run team join ingame @s
+execute if score @s restart matches 1.. as @s[team=!race,team=!training_mode] run tag @s remove end
+execute if score @s restart matches 1.. as @s[team=!training_mode,team=!race,tag=!tools] run trigger tools
+execute if score @s restart matches 1.. as @s[team=!race,team=!training_mode] run function common:timer/timer/reset
+#race
+execute if score @s restart matches 1.. as @s[team=race] run tellraw @s [{"text": "[","color": "white"},{"text": "Race","color": "green"},{"text": "] ","color": "white"},{"text": "This function cannot be used in a race.","color": "gray"}]
+execute unless score @s restart matches 0 run scoreboard players set @s restart 0
+
+scoreboard players enable @a lobby
+#normal
+execute if score @s lobby matches 1.. as @s[team=!race] run function common:back_to_lobby
+#race
+execute if score @s lobby matches 1.. as @s[team=race] run tellraw @s [{"text": "[","color": "white"},{"text": "Race","color": "green"},{"text": "] ","color": "white"},{"text": "This function cannot be used in a race.","color": "gray"}]
+execute unless score @s lobby matches 0 run scoreboard players set @s lobby 0
+
+
+scoreboard players enable @a training_mode
+#normal
+execute as @a[scores={training_mode=1..},team=training_mode] run function common:training_mode/team_leave
+execute as @a[scores={training_mode=1..},team=!training_mode,team=!race] run function common:training_mode/team_join
+#race
+execute as @a[scores={training_mode=1..},team=race] run tellraw @s [{"text": "[","color": "white"},{"text": "Race","color": "green"},{"text": "] ","color": "white"},{"text": "This function cannot be used in a race.","color": "gray"}]
+execute unless score @s training_mode matches 0 run scoreboard players set @s training_mode 0
+
+
+scoreboard players enable @s ranks
+execute if score @s ranks matches 1.. run function common:rank/show_ranks
+execute unless score @s ranks matches 0 run scoreboard players set @s ranks 0
+
+
+scoreboard players enable @s tools
+execute if score @s tools matches 1.. if entity @s[tag=tools] run tellraw @s [{"text": "Hotbar tools have been hidden.","color": "gray"}]
+execute if score @s tools matches 1.. if entity @s[tag=tools] run clear @s *[custom_data={tm_toggle:true}]
+execute if score @s tools matches 1.. if entity @s[tag=tools] run clear @s *[custom_data={race_create:true}]
+execute if score @s tools matches 1.. if entity @s[tag=tools] run tag @s add tools_hide
+execute if score @s tools matches 1.. if entity @s[tag=tools] run tag @s remove tools
+execute if score @s tools matches 1.. if entity @s[tag=!tools,tag=!tools_hide] run tellraw @s [{"text": "Hotbar tools have been displayed.","color": "gray"}]
+execute if score @s tools matches 1.. if entity @s[tag=!tools,tag=!tools_hide] run tag @s add tools
+execute if score @s tools matches 1.. as @s[tag=tools_hide] run tag @s remove tools_hide
+execute unless score @s tools matches 0 run scoreboard players set @s tools 0
+
+
+function common:race/trigger
