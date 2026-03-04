@@ -507,7 +507,7 @@ command /trapweb:
                 set {_placed} to false
                 loop 10 times:
                     if {_placed} is true:
-                        stop
+                        exit loop
                     set {_rx} to (random integer between -2 and 2)
                     set {_rz} to (random integer between -2 and 2)
                     set {_tryLoc} to location({x-coordinate of {_pLoc}} + {_rx}, {y-coordinate of {_pLoc}}, {z-coordinate of {_pLoc}} + {_rz}, world "world")
