@@ -121,14 +121,6 @@ on player move:
     set {_isLava} to false
     if block at player is lava:
         set {_isLava} to true
-    else if block north of player is lava:
-        set {_isLava} to true
-    else if block south of player is lava:
-        set {_isLava} to true
-    else if block east of player is lava:
-        set {_isLava} to true
-    else if block west of player is lava:
-        set {_isLava} to true
     if {_isLava} is true:
         set {_isWaterfall} to false
         if block above player is lava:
