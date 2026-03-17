@@ -10,3 +10,11 @@ libraries/
 .console_history
 usercache.json
 session.lock
+
+# Checkpoint API data (DO NOT include in release)
+plugins/Skript/scripts/cp_overlay/checkpoints.json
+plugins/Skript/scripts/_loaded_checkpoints.sk
+plugins/Skript/logs/checkpoint_export.log
+
+# Node modules
+node_modules/

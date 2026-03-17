@@ -3,8 +3,32 @@ const app = express();
 const http = require('http').createServer(app);
 const io = require('socket.io')(http);
 const path = require('path');
+const fs = require('fs');
 
 const PORT = 6969;
+
+// =============================================
+// CHECKPOINT API
+// =============================================
+const API_KEY = process.env.CP_API_KEY || 'CHANGE_ME_TO_A_SECRET_KEY';
+const CHECKPOINT_FILE = path.join(__dirname, 'checkpoints.json');
+
+app.get('/api/checkpoints', (req, res) => {
+    const key = req.query.key || req.headers['x-api-key'];
+    if (key !== API_KEY) {
+        return res.status(403).json({ error: 'Invalid API key' });
+    }
+    if (!fs.existsSync(CHECKPOINT_FILE)) {
+        return res.status(404).json({ error: 'checkpoints.json not found. Run /exportcp in-game first, then node convert_export.js' });
+    }
+    try {
+        const data = JSON.parse(fs.readFileSync(CHECKPOINT_FILE, 'utf8'));
+        console.log('[API] Checkpoint data served');
+        res.json(data);
+    } catch (e) {
+        res.status(500).json({ error: 'Failed to read checkpoint data' });
+    }
+});
 
 // Current state
 let currentCp = 0;
@@ -14,8 +38,6 @@ let maxCp = 60;
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'overlay.html'));
 });
-
-const fs = require('fs');
 
 // Path to the log file Skript will generate
 const LOG_FILE = path.join(__dirname, '../../../../plugins/Skript/logs/cp_overlay_data.log');

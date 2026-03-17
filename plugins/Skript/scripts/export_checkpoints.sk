@@ -1,0 +1,36 @@
+#################################
+# EXPORT CHECKPOINT DATA
+# Run /exportcp once to extract
+# checkpoint data to a log file,
+# then use convert_export.js to
+# create checkpoints.json
+#################################
+
+command /exportcp:
+    permission: op
+    trigger:
+        send "&e[Export] Starting checkpoint export..."
+
+        # Export final checkpoint
+        log "FINAL|%{cp.final}%" to "checkpoint_export.log"
+
+        # Export warps (0-61)
+        loop 62 times:
+            set {_i} to loop-number - 1
+            if {cp.warp::%{_i}%} is set:
+                set {_loc} to {cp.warp::%{_i}%}
+                set {_x} to x-coordinate of {_loc}
+                set {_y} to y-coordinate of {_loc}
+                set {_z} to z-coordinate of {_loc}
+                set {_yaw} to yaw of {_loc}
+                set {_pitch} to pitch of {_loc}
+                set {_world} to "%world of {_loc}%"
+                log "WARP|%{_i}%|%{_x}%|%{_y}%|%{_z}%|%{_yaw}%|%{_pitch}%|%{_world}%" to "checkpoint_export.log"
+
+        # Export beacons
+        loop {cp.beacon::*}:
+            log "BEACON|%loop-index%|%loop-value%" to "checkpoint_export.log"
+
+        log "DONE" to "checkpoint_export.log"
+        send "&a[Export] Done! File: plugins/Skript/logs/checkpoint_export.log"
+        send "&e[Export] Next: run 'node convert_export.js' in cp_overlay folder"
