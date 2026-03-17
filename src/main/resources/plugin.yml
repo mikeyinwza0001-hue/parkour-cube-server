@@ -1,0 +1,12 @@
+name: ParkourCube
+version: '${project.version}'
+main: com.parkourchube.ParkourCubePlugin
+api-version: '1.21'
+description: Parkour checkpoint system plugin
+author: mabel
+
+commands:
+  mbpk:
+    description: ParkourCube main command
+    usage: /mbpk <subcommand> [args]
+    aliases: [parkourcube]

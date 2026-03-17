@@ -1,0 +1,10 @@
+target/
+*.class
+*.jar
+*.log
+.DS_Store
+.idea/
+*.iml
+.vscode/
+start.bat
+run_hidden.vbs
