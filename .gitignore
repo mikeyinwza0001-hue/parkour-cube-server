@@ -1,5 +1,6 @@
-# Large binary files (uploaded via GitHub Release)
-*.jar
+# Server JAR (large binary)
+paper.jar
+*.zip
 
 # Runtime data
 logs/
@@ -11,6 +12,11 @@ libraries/
 usercache.json
 session.lock
 
+# Generated plugin data
+plugins/.paper-remapped/
+plugins/bStats/
+plugins/spark/
+
 # Checkpoint API data (DO NOT include in release)
 plugins/Skript/scripts/cp_overlay/checkpoints.json
 plugins/Skript/scripts/_loaded_checkpoints.sk
@@ -18,3 +24,8 @@ plugins/Skript/logs/checkpoint_export.log
 
 # Node modules
 node_modules/
+
+# OS files
+Thumbs.db
+desktop.ini
+.DS_Store
