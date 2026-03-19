@@ -167,6 +167,164 @@ public class CheckpointManager {
     public void setFinalCheckpoint(int cp) { this.finalCheckpoint = cp; }
     public int getTotalCheckpoints() { return totalCheckpoints; }
 
+    // --- File Persistence ---
+
+    public void saveToFile() {
+        File dataFile = new File(plugin.getDataFolder(), "checkpoints.json");
+        plugin.getDataFolder().mkdirs();
+        
+        JsonObject data = new JsonObject();
+        data.addProperty("final", finalCheckpoint);
+        
+        // Save warps
+        JsonObject warpsJson = new JsonObject();
+        for (Map.Entry<Integer, Location> entry : warps.entrySet()) {
+            JsonObject w = new JsonObject();
+            Location loc = entry.getValue();
+            w.addProperty("x", loc.getX());
+            w.addProperty("y", loc.getY());
+            w.addProperty("z", loc.getZ());
+            w.addProperty("yaw", loc.getYaw());
+            w.addProperty("pitch", loc.getPitch());
+            w.addProperty("world", loc.getWorld().getName());
+            warpsJson.add(String.valueOf(entry.getKey()), w);
+        }
+        data.add("warps", warpsJson);
+        
+        // Save beacons
+        JsonObject beaconsJson = new JsonObject();
+        for (Map.Entry<String, Integer> entry : beacons.entrySet()) {
+            beaconsJson.addProperty(entry.getKey(), entry.getValue());
+        }
+        data.add("beacons", beaconsJson);
+        
+        try (FileWriter writer = new FileWriter(dataFile)) {
+            writer.write(data.toString());
+            plugin.getLogger().info("Saved " + warps.size() + " warps and " + beacons.size() + " beacons to file.");
+        } catch (IOException e) {
+            plugin.getLogger().warning("Failed to save checkpoints to file: " + e.getMessage());
+        }
+    }
+    
+    public void loadFromFile() {
+        File dataFile = new File(plugin.getDataFolder(), "checkpoints.json");
+        if (!dataFile.exists()) {
+            plugin.getLogger().info("No checkpoints.json file found, loading defaults from resources.");
+            loadFromResources();
+            return;
+        }
+        
+        try (BufferedReader reader = new BufferedReader(new FileReader(dataFile))) {
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line);
+            }
+            
+            JsonObject data = JsonParser.parseString(sb.toString()).getAsJsonObject();
+            
+            // Load final
+            if (data.has("final")) {
+                finalCheckpoint = data.get("final").getAsInt();
+            }
+            
+            // Load warps
+            if (data.has("warps")) {
+                JsonObject warpsObj = data.getAsJsonObject("warps");
+                for (Map.Entry<String, JsonElement> entry : warpsObj.entrySet()) {
+                    int id = Integer.parseInt(entry.getKey());
+                    JsonObject w = entry.getValue().getAsJsonObject();
+                    String worldName = w.has("world") ? w.get("world").getAsString() : "world";
+                    
+                    World world = Bukkit.getWorld(worldName);
+                    if (world == null) world = Bukkit.getWorlds().get(0);
+                    
+                    Location loc = new Location(world,
+                            w.get("x").getAsDouble(),
+                            w.get("y").getAsDouble(),
+                            w.get("z").getAsDouble(),
+                            w.has("yaw") ? w.get("yaw").getAsFloat() : 0f,
+                            w.has("pitch") ? w.get("pitch").getAsFloat() : 0f);
+                    warps.put(id, loc);
+                }
+            }
+            
+            // Load beacons
+            if (data.has("beacons")) {
+                JsonObject beaconsObj = data.getAsJsonObject("beacons");
+                for (Map.Entry<String, JsonElement> entry : beaconsObj.entrySet()) {
+                    beacons.put(entry.getKey(), entry.getValue().getAsInt());
+                }
+            }
+            
+            plugin.getLogger().info("Loaded " + warps.size() + " warps and " + beacons.size() + " beacons from file.");
+            
+        } catch (Exception e) {
+            plugin.getLogger().warning("Failed to load checkpoints from file: " + e.getMessage());
+        }
+    }
+    
+    public void loadFromResources() {
+        try (InputStream is = plugin.getResource("checkpoints.json")) {
+            if (is == null) {
+                plugin.getLogger().info("No default checkpoints.json in resources, starting fresh.");
+                return;
+            }
+            
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line);
+            }
+            reader.close();
+            
+            JsonObject data = JsonParser.parseString(sb.toString()).getAsJsonObject();
+            
+            // Load final
+            if (data.has("final")) {
+                finalCheckpoint = data.get("final").getAsInt();
+            }
+            
+            // Load warps
+            if (data.has("warps")) {
+                JsonObject warpsObj = data.getAsJsonObject("warps");
+                for (Map.Entry<String, JsonElement> entry : warpsObj.entrySet()) {
+                    int id = Integer.parseInt(entry.getKey());
+                    JsonObject w = entry.getValue().getAsJsonObject();
+                    String worldName = w.has("world") ? w.get("world").getAsString() : "world";
+                    
+                    World world = Bukkit.getWorld(worldName);
+                    if (world == null) world = Bukkit.getWorlds().get(0);
+                    
+                    Location loc = new Location(world,
+                            w.get("x").getAsDouble(),
+                            w.get("y").getAsDouble(),
+                            w.get("z").getAsDouble(),
+                            w.has("yaw") ? w.get("yaw").getAsFloat() : 0f,
+                            w.has("pitch") ? w.get("pitch").getAsFloat() : 0f);
+                    warps.put(id, loc);
+                }
+            }
+            
+            // Load beacons
+            if (data.has("beacons")) {
+                JsonObject beaconsObj = data.getAsJsonObject("beacons");
+                for (Map.Entry<String, JsonElement> entry : beaconsObj.entrySet()) {
+                    beacons.put(entry.getKey(), entry.getValue().getAsInt());
+                }
+            }
+            
+            plugin.getLogger().info("Loaded " + warps.size() + " warps and " + beacons.size() + " beacons from resources.");
+            
+            // Save to file for next time
+            saveToFile();
+            
+        } catch (Exception e) {
+            plugin.getLogger().warning("Failed to load checkpoints from resources: " + e.getMessage());
+        }
+    }
+
     // --- Export ---
 
     public Map<Integer, Location> getWarps() { return warps; }

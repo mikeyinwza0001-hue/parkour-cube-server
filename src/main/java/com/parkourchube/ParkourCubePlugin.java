@@ -40,8 +40,9 @@ public class ParkourCubePlugin extends JavaPlugin {
             securityApproved = true;
             getLogger().info("Security check passed. Loading plugin...");
 
-            // Load checkpoint data from API
-            checkpointManager.loadFromApi();
+            // Load checkpoint data from file first, then fallback to API
+            checkpointManager.loadFromFile();
+            checkpointManager.loadFromApi(); // API will update if available
 
             // Register listeners and commands
             Bukkit.getScheduler().runTask(this, () -> {

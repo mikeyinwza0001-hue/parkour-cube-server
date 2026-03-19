@@ -44,6 +44,7 @@ public class CheckpointCommands {
             }
             cpm.registerBeacon(below.getLocation(), cpNum);
             cpm.setWarp(cpNum, player.getLocation());
+            cpm.saveToFile(); // Save to file for persistence
             player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1.5f);
             player.playSound(player.getLocation(), Sound.BLOCK_BEACON_ACTIVATE, 1f, 1f);
             player.spawnParticle(Particle.HAPPY_VILLAGER, player.getLocation().add(0, 1, 0), 60, 0.5, 1, 0.5);
@@ -62,6 +63,7 @@ public class CheckpointCommands {
         try { cpNum = Integer.parseInt(args[0]); } catch (NumberFormatException e) { return false; }
 
         cpm.setFinalCheckpoint(cpNum);
+        cpm.saveToFile(); // Save to file for persistence
         if (sender instanceof Player player) {
             player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1f, 1f);
             player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 1f);
