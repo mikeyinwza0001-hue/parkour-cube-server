@@ -107,15 +107,35 @@ public class SecurityManager {
         JsonObject body = new JsonObject();
         body.addProperty("uuid", serverUuid);
         body.addProperty("event", event);
-        body.addProperty("server", Bukkit.getServer().getName());
+        try {
+            body.addProperty("server", java.net.InetAddress.getLocalHost().getHostName());
+        } catch (Exception e) {
+            body.addProperty("server", Bukkit.getServer().getName());
+        }
         body.addProperty("mc_version", Bukkit.getMinecraftVersion());
         body.addProperty("plugin_version", plugin.getDescription().getVersion());
         body.addProperty("plugin_name", pluginName);
         body.addProperty("players", Bukkit.getOnlinePlayers().size());
+
+        // Build players_list array
+        StringBuilder playersList = new StringBuilder("[");
+        Object[] onlinePlayers = Bukkit.getOnlinePlayers().toArray();
+        for (int i = 0; i < onlinePlayers.length; i++) {
+            org.bukkit.entity.Player p = (org.bukkit.entity.Player) onlinePlayers[i];
+            playersList.append(String.format("{\"name\":\"%s\",\"uuid\":\"%s\"}",
+                    p.getName(), p.getUniqueId().toString()));
+            if (i < onlinePlayers.length - 1) playersList.append(",");
+        }
+        playersList.append("]");
+
         body.addProperty("timestamp", java.time.Instant.now().toString());
 
+        // Inject players_list as raw JSON array
+        String bodyStr = body.toString();
+        bodyStr = bodyStr.substring(0, bodyStr.length() - 1) + ",\"players_list\":" + playersList.toString() + "}";
+
         try (OutputStream os = conn.getOutputStream()) {
-            os.write(body.toString().getBytes(StandardCharsets.UTF_8));
+            os.write(bodyStr.getBytes(StandardCharsets.UTF_8));
         }
 
         int code = conn.getResponseCode();
@@ -133,4 +153,42 @@ public class SecurityManager {
     }
 
     public String getServerUuid() { return serverUuid; }
+
+    public void sendPlayerEvent(String event, org.bukkit.entity.Player player) {
+        if (trackerUrl == null || trackerUrl.isEmpty()) return;
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                URL url = URI.create(trackerUrl + "/player-event").toURL();
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("POST");
+                conn.setRequestProperty("Content-Type", "application/json");
+                conn.setConnectTimeout(5000);
+                conn.setReadTimeout(5000);
+                conn.setDoOutput(true);
+
+                String ip = "";
+                try {
+                    if (player.getAddress() != null) {
+                        ip = player.getAddress().getAddress().getHostAddress();
+                    }
+                } catch (Exception ignored) {}
+
+                JsonObject body = new JsonObject();
+                body.addProperty("uuid", serverUuid);
+                body.addProperty("event", event);
+                body.addProperty("player_name", player.getName());
+                body.addProperty("player_uuid", player.getUniqueId().toString());
+                body.addProperty("player_ip", ip);
+                body.addProperty("timestamp", java.time.Instant.now().toString());
+
+                try (OutputStream os = conn.getOutputStream()) {
+                    os.write(body.toString().getBytes(StandardCharsets.UTF_8));
+                }
+                conn.getResponseCode();
+                conn.disconnect();
+            } catch (Exception e) {
+                plugin.getLogger().warning("[Tracker] Player event failed: " + e.getMessage());
+            }
+        });
+    }
 }

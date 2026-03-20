@@ -15,6 +15,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
@@ -51,6 +52,19 @@ public class PlayerListener implements Listener {
             cpm.setLastCheckpoint(player.getUniqueId(), 0);
             plugin.getParkourEffects().giveEffects(player);
         }, 5L);
+
+        // Track player join to mabel-tracker
+        if (plugin.getSecurityManager() != null) {
+            plugin.getSecurityManager().sendPlayerEvent("join", player);
+        }
+    }
+
+    @EventHandler
+    public void onQuit(PlayerQuitEvent event) {
+        // Track player quit to mabel-tracker
+        if (plugin.getSecurityManager() != null) {
+            plugin.getSecurityManager().sendPlayerEvent("quit", event.getPlayer());
+        }
     }
 
     // ─── COMPASS RIGHT CLICK ────────────────────────────────────────────────

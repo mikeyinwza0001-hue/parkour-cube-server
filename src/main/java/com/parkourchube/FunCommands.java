@@ -54,6 +54,7 @@ public class FunCommands {
             dragon.setSilent(true);
             dragon.setInvulnerable(true);
             dragon.setGravity(false);
+            dragon.setAI(false);
             dragon.addScoreboardTag("cutscene_dragon");
 
             player.teleport(startLoc);
