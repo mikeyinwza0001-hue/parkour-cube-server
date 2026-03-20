@@ -2,6 +2,10 @@
 paper.jar
 *.zip
 
+# Bundled runtime binaries (too large for GitHub)
+jre/
+plugins/Skript/scripts/cp_overlay/node.exe
+
 # Runtime data
 logs/
 crash-reports/

@@ -13,7 +13,7 @@ $ErrorActionPreference = "Stop"
 # Read version
 $versionFile = Get-Content ".\server-version.json" | ConvertFrom-Json
 $version = $versionFile.version
-$zipName = "parkour-cube-server-v$version.zip"
+$zipName = "mabel-parkour-cube-server-v$version.zip"
 
 Write-Host "=== Building Parkour Cube release v$version ===" -ForegroundColor Cyan
 
@@ -59,6 +59,15 @@ $excludeDirs = @(
     "plugins\spark"
 )
 
+# ─── Ensure overlay dependencies are installed ────────
+$overlayDir = ".\plugins\Skript\scripts\cp_overlay"
+if (Test-Path "$overlayDir\package.json") {
+    Write-Host "Installing CP overlay dependencies..." -ForegroundColor Yellow
+    Push-Location $overlayDir
+    npm install --production 2>$null
+    Pop-Location
+}
+
 # ─── Copy everything first ────────────────────────────
 Write-Host "Copying server files..." -ForegroundColor Yellow
 
@@ -96,7 +105,8 @@ foreach ($item in $allItems) {
 # ─── Create zip ───────────────────────────────────────
 Write-Host "Creating $zipName..." -ForegroundColor Yellow
 $zipPath = "$OutputDir\$zipName"
-Compress-Archive -Path "$tempDir\*" -DestinationPath $zipPath -Force
+# Compress-Archive -Path "$tempDir\*" -DestinationPath $zipPath -Force
+tar -acf $zipPath -C $tempDir .
 
 # Cleanup temp
 Remove-Item $tempDir -Recurse -Force
