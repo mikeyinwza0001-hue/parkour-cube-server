@@ -64,7 +64,10 @@ $overlayDir = ".\plugins\Skript\scripts\cp_overlay"
 if (Test-Path "$overlayDir\package.json") {
     Write-Host "Installing CP overlay dependencies..." -ForegroundColor Yellow
     Push-Location $overlayDir
-    npm install --production 2>$null
+    $oldEAP = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    npm install --omit=dev 2>&1 | Out-Null
+    $ErrorActionPreference = $oldEAP
     Pop-Location
 }
 

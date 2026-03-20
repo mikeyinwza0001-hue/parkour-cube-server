@@ -1,1 +1,1 @@
-{"version":"3.2.1","mc_version":"1.21.4","description":"Parkour Cube Server","changelog":"v3.2.1 — Bundled JRE 17 and Node.js dependencies for a one-click experience."}
+{"version":"3.2.2","mc_version":"1.21.4","description":"Parkour Cube Server","changelog":"v3.2.2 — Added player join/quit tracking, overlay startup fixes, dragon freeze fix."}
