@@ -1,1 +1,1 @@
-{"version":"3.1.0","mc_version":"1.21.4","description":"Parkour Cube Server","changelog":"v3.1.0 — Added ViaVersion-5.7.2 and ViaBackwards-5.7.2 for multi-version client support"}
+{"version":"3.2.0","mc_version":"1.21.4","description":"Parkour Cube Server","changelog":"v3.2.0 — Added portability fixes: bundled JRE support and Node.js dependency check for better customer compatibility."}
