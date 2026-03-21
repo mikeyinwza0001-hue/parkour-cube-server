@@ -46,9 +46,9 @@ public class FunCommands {
 
             World world = Bukkit.getWorld("world");
             if (world == null) world = Bukkit.getWorlds().get(0);
-            Location startLoc = new Location(world, 15.5, 70.4, -49.5);
+            Location startLoc = new Location(world, 15.500, 70.400, -49.500);
 
-            // Spawn dragon
+            // Spawn dragon (visual only — not ridden)
             EnderDragon dragon = (EnderDragon) world.spawnEntity(startLoc, EntityType.ENDER_DRAGON);
             dragon.setSilent(true);
             dragon.setInvulnerable(true);
@@ -56,8 +56,17 @@ public class FunCommands {
             dragon.setAI(false);
             dragon.addScoreboardTag("cutscene_dragon");
 
+            // Invisible ArmorStand is the actual vehicle — velocity works reliably on it
+            org.bukkit.entity.ArmorStand seat = (org.bukkit.entity.ArmorStand)
+                    world.spawnEntity(startLoc, EntityType.ARMOR_STAND);
+            seat.setVisible(false);
+            seat.setGravity(false);
+            seat.setInvulnerable(true);
+            seat.setMarker(true);
+            seat.addScoreboardTag("cutscene_dragon");
+
             player.teleport(startLoc);
-            dragon.addPassenger(player);
+            seat.addPassenger(player);
 
             showTitle(player, "&6&lFinal Stage", "");
 
@@ -71,7 +80,7 @@ public class FunCommands {
                 { 11.586, 280.395, -28.014 },
                 { 11.475, 259.000, 16.464 },    // end (dive down)
             };
-            int ticksPerSegment = 30;
+            int ticksPerSegment = 40;
 
             final Player fp = player;
             final World fw = world;
@@ -82,7 +91,7 @@ public class FunCommands {
 
                 @Override
                 public void run() {
-                    if (!fp.isOnline() || dragon.isDead()) {
+                    if (!fp.isOnline() || dragon.isDead() || seat.isDead()) {
                         cleanup();
                         cancel();
                         return;
@@ -114,47 +123,40 @@ public class FunCommands {
                         return;
                     }
 
-                    double t = (double) tick / ticksPerSegment;
                     double[] from = waypoints[segment];
                     double[] to = waypoints[segment + 1];
-                    double cx = from[0] + (to[0] - from[0]) * t;
-                    double cy = from[1] + (to[1] - from[1]) * t;
-                    double cz = from[2] + (to[2] - from[2]) * t;
 
-                    // Calculate yaw to face direction of travel
+                    // Target position for the NEXT tick (seeking)
+                    double nt = Math.min(1.0, (double) (tick + 1) / ticksPerSegment);
+                    double tx = from[0] + (to[0] - from[0]) * nt;
+                    double ty = from[1] + (to[1] - from[1]) * nt;
+                    double tz = from[2] + (to[2] - from[2]) * nt;
+
+                    // Velocity = vector from current position to target (self-correcting)
+                    Location cur = seat.getLocation();
+                    Vector vel = new Vector(tx - cur.getX(), ty - cur.getY(), tz - cur.getZ());
+                    seat.setVelocity(vel);
+
+                    // Dragon follows alongside the seat (visual only, no passenger)
+                    Location dragonLoc = cur.clone();
                     double dx = to[0] - from[0];
                     double dz = to[2] - from[2];
-                    float yaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
-                    // Calculate pitch: negative = looking up, positive = looking down
-                    double dy = to[1] - from[1];
-                    double dist = Math.sqrt(dx * dx + dz * dz);
-                    float pitch = (float) -Math.toDegrees(Math.atan2(dy, dist));
-
-                    Location loc = new Location(fw, cx, cy, cz, yaw, pitch);
-
-                    // Eject passenger before teleport (dragon.teleport ignores passengers)
-                    dragon.eject();
-                    dragon.teleport(loc);
-                    // Re-mount player on dragon after teleport
-                    Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                        if (fp.isOnline() && !dragon.isDead()) {
-                            dragon.addPassenger(fp);
-                        }
-                    }, 1L);
+                    dragonLoc.setYaw((float) Math.toDegrees(Math.atan2(-dx, dz)));
+                    dragon.teleport(dragonLoc);
 
                     // Particles based on flight phase
                     if (segment < waypoints.length - 2) {
                         // Climbing / cruising
-                        if (tick % 3 == 0) fp.playSound(loc, Sound.ENTITY_ENDER_DRAGON_FLAP, 0.5f, 1f);
-                        fw.spawnParticle(Particle.FLAME, loc, 5, 1, 0.3, 1);
-                        fw.spawnParticle(Particle.CLOUD, loc, 3, 0.5, 0.2, 0.5);
+                        if (tick % 3 == 0) fp.playSound(cur, Sound.ENTITY_ENDER_DRAGON_FLAP, 0.5f, 1f);
+                        fw.spawnParticle(Particle.FLAME, cur, 5, 1, 0.3, 1);
+                        fw.spawnParticle(Particle.CLOUD, cur, 3, 0.5, 0.2, 0.5);
                     } else {
                         // Diving down (last segment)
-                        fw.spawnParticle(Particle.PORTAL, loc, 20, 1, 1, 1);
+                        fw.spawnParticle(Particle.PORTAL, cur, 20, 1, 1, 1);
                     }
 
                     tick++;
-                    if (tick > ticksPerSegment) {
+                    if (tick >= ticksPerSegment) {
                         tick = 0;
                         segment++;
                     }
@@ -162,8 +164,9 @@ public class FunCommands {
 
                 void cleanup() {
                     dragon.remove();
+                    seat.remove();
                     Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
-                            "kill @e[type=ender_dragon,tag=cutscene_dragon]");
+                            "kill @e[tag=cutscene_dragon]");
                 }
             }.runTaskTimer(plugin, 0L, 1L);
         }
