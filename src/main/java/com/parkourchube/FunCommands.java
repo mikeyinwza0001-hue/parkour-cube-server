@@ -131,7 +131,16 @@ public class FunCommands {
                     float pitch = (float) -Math.toDegrees(Math.atan2(dy, dist));
 
                     Location loc = new Location(fw, cx, cy, cz, yaw, pitch);
+
+                    // Eject passenger before teleport (dragon.teleport ignores passengers)
+                    dragon.eject();
                     dragon.teleport(loc);
+                    // Re-mount player on dragon after teleport
+                    Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                        if (fp.isOnline() && !dragon.isDead()) {
+                            dragon.addPassenger(fp);
+                        }
+                    }, 1L);
 
                     // Particles based on flight phase
                     if (segment < waypoints.length - 2) {
