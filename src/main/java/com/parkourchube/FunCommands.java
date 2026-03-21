@@ -48,7 +48,7 @@ public class FunCommands {
             if (world == null) world = Bukkit.getWorlds().get(0);
             Location startLoc = new Location(world, 15.500, 70.400, -49.500);
 
-            // Spawn dragon (visual only — not ridden)
+            // Spawn dragon (visual only — follows player)
             EnderDragon dragon = (EnderDragon) world.spawnEntity(startLoc, EntityType.ENDER_DRAGON);
             dragon.setSilent(true);
             dragon.setInvulnerable(true);
@@ -56,17 +56,12 @@ public class FunCommands {
             dragon.setAI(false);
             dragon.addScoreboardTag("cutscene_dragon");
 
-            // Invisible ArmorStand is the actual vehicle — velocity works reliably on it
-            org.bukkit.entity.ArmorStand seat = (org.bukkit.entity.ArmorStand)
-                    world.spawnEntity(startLoc, EntityType.ARMOR_STAND);
-            seat.setVisible(false);
-            seat.setGravity(false);
-            seat.setInvulnerable(true);
-            seat.setMarker(true);
-            seat.addScoreboardTag("cutscene_dragon");
-
+            // Put player in flying mode — velocity works reliably on flying players
+            final boolean wasFlying = player.isFlying();
+            final boolean wasAllowFlight = player.getAllowFlight();
             player.teleport(startLoc);
-            seat.addPassenger(player);
+            player.setAllowFlight(true);
+            player.setFlying(true);
 
             showTitle(player, "&6&lFinal Stage", "");
 
@@ -91,17 +86,18 @@ public class FunCommands {
 
                 @Override
                 public void run() {
-                    if (!fp.isOnline() || dragon.isDead() || seat.isDead()) {
+                    if (!fp.isOnline() || dragon.isDead()) {
                         cleanup();
                         cancel();
                         return;
                     }
 
                     if (segment >= waypoints.length - 1) {
-                        // Finish — arrived at final waypoint
+                        // Finish — restore flight state and teleport to CP 60
                         fp.playSound(fp.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1f, 1f);
                         fp.spawnParticle(Particle.PORTAL, fp.getLocation(), 200, 2, 2, 2);
-                        fp.leaveVehicle();
+                        fp.setFlying(wasFlying);
+                        fp.setAllowFlight(wasAllowFlight);
                         cleanup();
 
                         Bukkit.getScheduler().runTaskLater(plugin, () -> {
@@ -132,16 +128,17 @@ public class FunCommands {
                     double ty = from[1] + (to[1] - from[1]) * nt;
                     double tz = from[2] + (to[2] - from[2]) * nt;
 
-                    // Velocity = vector from current position to target (self-correcting)
-                    Location cur = seat.getLocation();
+                    // Move player with velocity — smooth flight, player can look around freely
+                    Location cur = fp.getLocation();
                     Vector vel = new Vector(tx - cur.getX(), ty - cur.getY(), tz - cur.getZ());
-                    seat.setVelocity(vel);
+                    fp.setVelocity(vel);
 
-                    // Dragon follows alongside the seat (visual only, no passenger)
-                    Location dragonLoc = cur.clone();
+                    // Dragon follows the player (visual only)
+                    Location dragonLoc = fp.getLocation().clone();
                     double dx = to[0] - from[0];
                     double dz = to[2] - from[2];
                     dragonLoc.setYaw((float) Math.toDegrees(Math.atan2(-dx, dz)));
+                    dragonLoc.add(0, -2, 0); // dragon body below player
                     dragon.teleport(dragonLoc);
 
                     // Particles based on flight phase
@@ -164,7 +161,6 @@ public class FunCommands {
 
                 void cleanup() {
                     dragon.remove();
-                    seat.remove();
                     Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
                             "kill @e[tag=cutscene_dragon]");
                 }
