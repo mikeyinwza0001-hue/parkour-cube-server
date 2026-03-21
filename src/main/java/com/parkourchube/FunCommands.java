@@ -46,8 +46,7 @@ public class FunCommands {
 
             World world = Bukkit.getWorld("world");
             if (world == null) world = Bukkit.getWorlds().get(0);
-            Location startLoc = new Location(world, 15.5, 68, -49.5);
-            Location targetLoc = warp60.clone();
+            Location startLoc = new Location(world, 15.5, 70.4, -49.5);
 
             // Spawn dragon
             EnderDragon dragon = (EnderDragon) world.spawnEntity(startLoc, EntityType.ENDER_DRAGON);
@@ -62,23 +61,24 @@ public class FunCommands {
 
             showTitle(player, "&6&lFinal Stage", "");
 
-            double peakY = startLoc.getY() + 200;
-            double xDiff = targetLoc.getX() - startLoc.getX();
-            double zDiff = targetLoc.getZ() - startLoc.getZ();
-
-            int phase1 = 40, phase2 = 40, phase3 = 40;
-            double yUpStep = 200.0 / phase1;
-            double xStep = xDiff / (phase1 + phase2);
-            double zStep = zDiff / (phase1 + phase2);
-            double yDownStep = (peakY - targetLoc.getY()) / phase3;
+            // Waypoints for dragon flight path
+            double[][] waypoints = {
+                { 15.500, 70.400, -49.500 },   // start
+                { -26.855, 98.929, -53.305 },
+                { -77.532, 150.657, 22.046 },
+                { 16.752, 208.776, 108.568 },
+                { 69.495, 256.781, 23.032 },
+                { 11.586, 280.395, -28.014 },
+                { 11.475, 259.000, 16.464 },    // end (dive down)
+            };
+            int ticksPerSegment = 30;
 
             final Player fp = player;
             final World fw = world;
 
             new BukkitRunnable() {
-                int phase = 1;
-                int step = 0;
-                double cx = startLoc.getX(), cy = startLoc.getY(), cz = startLoc.getZ();
+                int segment = 0;
+                int tick = 0;
 
                 @Override
                 public void run() {
@@ -88,52 +88,66 @@ public class FunCommands {
                         return;
                     }
 
-                    if (phase == 1) {
-                        cx += xStep; cy += yUpStep; cz += zStep;
-                        Location loc = new Location(fw, cx, cy, cz, 180, 0);
-                        dragon.teleport(loc);
-                        fp.playSound(loc, Sound.ENTITY_ENDER_DRAGON_FLAP, 1f, 1f);
-                        fw.spawnParticle(Particle.FLAME, loc, 10, 1, 0.5, 1);
-                        step++;
-                        if (step >= phase1) { step = 0; phase = 2; }
-                    } else if (phase == 2) {
-                        cx += xStep; cz += zStep;
-                        Location loc = new Location(fw, cx, cy, cz, 180, 0);
-                        dragon.teleport(loc);
-                        fw.spawnParticle(Particle.CLOUD, loc, 50, 2, 0.5, 2);
-                        step++;
-                        if (step >= phase2) { step = 0; phase = 3; }
-                    } else if (phase == 3) {
-                        cy -= yDownStep;
-                        Location loc = new Location(fw, cx, cy, cz, 180, 60);
-                        dragon.teleport(loc);
-                        fw.spawnParticle(Particle.PORTAL, loc, 20, 1, 1, 1);
-                        step++;
-                        if (step >= phase3) {
-                            // Finish
-                            fp.playSound(fp.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1f, 1f);
-                            fp.spawnParticle(Particle.PORTAL, fp.getLocation(), 200, 2, 2, 2);
-                            fp.leaveVehicle();
-                            cleanup();
+                    if (segment >= waypoints.length - 1) {
+                        // Finish — arrived at final waypoint
+                        fp.playSound(fp.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1f, 1f);
+                        fp.spawnParticle(Particle.PORTAL, fp.getLocation(), 200, 2, 2, 2);
+                        fp.leaveVehicle();
+                        cleanup();
 
+                        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                            fp.teleport(warp60);
                             Bukkit.getScheduler().runTaskLater(plugin, () -> {
                                 fp.teleport(warp60);
-                                Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                                    fp.teleport(warp60);
-                                    fp.spawnParticle(Particle.REVERSE_PORTAL, fp.getLocation().add(0, 1, 0), 120, 0, 1, 0);
-                                    fp.playSound(fp.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 1f);
-                                    showTitle(fp, "&6&lTop Reached!", "&aCP 60 - Final");
+                                fp.spawnParticle(Particle.REVERSE_PORTAL, fp.getLocation().add(0, 1, 0), 120, 0, 1, 0);
+                                fp.playSound(fp.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 1f);
+                                showTitle(fp, "&6&lTop Reached!", "&aCP 60 - Final");
 
-                                    cpm.setLastCheckpoint(fp.getUniqueId(), 60);
-                                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
-                                            "scoreboard players set " + fp.getName() + " checkpoint 60");
-                                    overlay.writeCheckpoint(60, cpm.getTotalCheckpoints());
-                                }, 5L);
-                            }, 2L);
+                                cpm.setLastCheckpoint(fp.getUniqueId(), 60);
+                                Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+                                        "scoreboard players set " + fp.getName() + " checkpoint 60");
+                                overlay.writeCheckpoint(60, cpm.getTotalCheckpoints());
+                            }, 5L);
+                        }, 2L);
 
-                            cancel();
-                            return;
-                        }
+                        cancel();
+                        return;
+                    }
+
+                    double t = (double) tick / ticksPerSegment;
+                    double[] from = waypoints[segment];
+                    double[] to = waypoints[segment + 1];
+                    double cx = from[0] + (to[0] - from[0]) * t;
+                    double cy = from[1] + (to[1] - from[1]) * t;
+                    double cz = from[2] + (to[2] - from[2]) * t;
+
+                    // Calculate yaw to face direction of travel
+                    double dx = to[0] - from[0];
+                    double dz = to[2] - from[2];
+                    float yaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
+                    // Calculate pitch: negative = looking up, positive = looking down
+                    double dy = to[1] - from[1];
+                    double dist = Math.sqrt(dx * dx + dz * dz);
+                    float pitch = (float) -Math.toDegrees(Math.atan2(dy, dist));
+
+                    Location loc = new Location(fw, cx, cy, cz, yaw, pitch);
+                    dragon.teleport(loc);
+
+                    // Particles based on flight phase
+                    if (segment < waypoints.length - 2) {
+                        // Climbing / cruising
+                        if (tick % 3 == 0) fp.playSound(loc, Sound.ENTITY_ENDER_DRAGON_FLAP, 0.5f, 1f);
+                        fw.spawnParticle(Particle.FLAME, loc, 5, 1, 0.3, 1);
+                        fw.spawnParticle(Particle.CLOUD, loc, 3, 0.5, 0.2, 0.5);
+                    } else {
+                        // Diving down (last segment)
+                        fw.spawnParticle(Particle.PORTAL, loc, 20, 1, 1, 1);
+                    }
+
+                    tick++;
+                    if (tick > ticksPerSegment) {
+                        tick = 0;
+                        segment++;
                     }
                 }
 
