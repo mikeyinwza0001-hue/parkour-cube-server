@@ -1,6 +1,5 @@
 package com.parkourchube;
 
-import io.papermc.paper.entity.TeleportFlag;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
@@ -131,8 +130,14 @@ public class FunCommands {
 
                     Location loc = new Location(fw, cx, cy, cz, yaw, 0f);
 
-                    // Paper API: teleport dragon WITH passenger (player stays mounted)
-                    dragon.teleport(loc, TeleportFlag.EntityState.RETAIN_PASSENGERS);
+                    // Eject player, teleport dragon, remount player (reliable method)
+                    dragon.eject();
+                    dragon.teleport(loc);
+                    Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                        if (fp.isOnline() && !dragon.isDead()) {
+                            dragon.addPassenger(fp);
+                        }
+                    }, 1L);
 
                     // Particles based on flight phase
                     if (segment < waypoints.length - 2) {
