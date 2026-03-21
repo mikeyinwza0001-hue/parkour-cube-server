@@ -48,37 +48,56 @@ public class FunCommands {
             if (world == null) world = Bukkit.getWorlds().get(0);
             Location startLoc = new Location(world, 15.500, 70.400, -49.500);
 
-            // Spawn dragon — player rides it
-            EnderDragon dragon = (EnderDragon) world.spawnEntity(startLoc, EntityType.ENDER_DRAGON);
+            // Spawn dragon using NMS data merge (exactly like Skript version)
+            // DragonPhase:10 = hovering initially
+            Location startLoc180 = startLoc.clone();
+            startLoc180.setYaw(180f);
+            startLoc180.setPitch(0f);
+
+            EnderDragon dragon = (EnderDragon) world.spawnEntity(startLoc180, EntityType.ENDER_DRAGON);
             dragon.setSilent(true);
             dragon.setInvulnerable(true);
-            dragon.setGravity(false);
-            dragon.setAI(false);
             dragon.addScoreboardTag("cutscene_dragon");
+            // Set initial phase via NMS data merge (same as Skript)
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+                    "data merge entity " + dragon.getUniqueId()
+                    + " {Silent:1b,Invulnerable:1b,NoGravity:1b,PersistenceRequired:1b,DragonPhase:10}");
 
-            player.teleport(startLoc);
+            player.teleport(startLoc180);
+            // Mount player on dragon (same as Skript: make player ride dragon)
             dragon.addPassenger(player);
 
             showTitle(player, "&6&lFinal Stage", "");
 
-            // Waypoints for dragon flight path
-            double[][] waypoints = {
-                { 15.500, 70.400, -49.500 },   // start
-                { -26.855, 98.929, -53.305 },
-                { -77.532, 150.657, 22.046 },
-                { 16.752, 208.776, 108.568 },
-                { 69.495, 256.781, 23.032 },
-                { 11.586, 280.395, -28.014 },
-                { 11.475, 259.000, 16.464 },    // end (dive down)
-            };
-            int ticksPerSegment = 40;
+            // 3-phase flight (exactly like Skript):
+            // Phase 1: ascend + move forward (40 ticks)
+            // Phase 2: cruise forward at peak (40 ticks)
+            // Phase 3: dive down (40 ticks)
+            final double peakY = startLoc.getY() + 200;
+            Location targetLoc = warp60;
+            final double xDiff = targetLoc.getX() - startLoc.getX();
+            final double zDiff = targetLoc.getZ() - startLoc.getZ();
+            final double diveDiff = peakY - targetLoc.getY();
+
+            final int phase1Steps = 40;
+            final int phase2Steps = 40;
+            final int phase3Steps = 40;
+
+            final double yUpStep = 200.0 / phase1Steps;
+            final double totalForwardSteps = phase1Steps + phase2Steps;
+            final double xStep = xDiff / totalForwardSteps;
+            final double zStep = zDiff / totalForwardSteps;
+            final double yDownStep = diveDiff / phase3Steps;
 
             final Player fp = player;
             final World fw = world;
 
             new BukkitRunnable() {
-                int segment = 0;
-                int tick = 0;
+                int phase = 1;
+                int step = 0;
+                double cx = startLoc.getX();
+                double cy = startLoc.getY();
+                double cz = startLoc.getZ();
 
                 @Override
                 public void run() {
@@ -88,8 +107,8 @@ public class FunCommands {
                         return;
                     }
 
-                    if (segment >= waypoints.length - 1) {
-                        // Finish — teleport to CP 60
+                    // All phases done
+                    if (phase > 3) {
                         fp.playSound(fp.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1f, 1f);
                         fp.spawnParticle(Particle.PORTAL, fp.getLocation(), 200, 2, 2, 2);
                         fp.leaveVehicle();
@@ -114,44 +133,40 @@ public class FunCommands {
                         return;
                     }
 
-                    double[] from = waypoints[segment];
-                    double[] to = waypoints[segment + 1];
+                    // Move position (same math as Skript)
+                    if (phase == 1) {
+                        cx += xStep;
+                        cy += yUpStep;
+                        cz += zStep;
+                    } else if (phase == 2) {
+                        cx += xStep;
+                        cz += zStep;
+                    } else {
+                        cy -= yDownStep;
+                    }
 
-                    // Interpolated position for this tick
-                    double t = (double) tick / ticksPerSegment;
-                    double cx = from[0] + (to[0] - from[0]) * t;
-                    double cy = from[1] + (to[1] - from[1]) * t;
-                    double cz = from[2] + (to[2] - from[2]) * t;
+                    // Move dragon using data merge (preserves passenger — same as Skript teleport)
+                    // DragonPhase:0 = circling = flapping wings animation
+                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+                            String.format("data merge entity %s {Pos:[%sd,%sd,%sd],Rotation:[180f,0f],DragonPhase:0}",
+                                    dragon.getUniqueId(), cx, cy, cz));
 
-                    // Calculate yaw to face direction of travel
-                    double dx = to[0] - from[0];
-                    double dz = to[2] - from[2];
-                    float yaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
-
-                    Location loc = new Location(fw, cx, cy, cz, yaw, 0f);
-
-                    // Eject player, teleport dragon, remount player (reliable method)
-                    dragon.eject();
-                    dragon.teleport(loc);
-                    Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                        if (fp.isOnline() && !dragon.isDead()) {
-                            dragon.addPassenger(fp);
-                        }
-                    }, 1L);
-
-                    // Particles based on flight phase
-                    if (segment < waypoints.length - 2) {
-                        if (tick % 3 == 0) fp.playSound(loc, Sound.ENTITY_ENDER_DRAGON_FLAP, 0.5f, 1f);
-                        fw.spawnParticle(Particle.FLAME, loc, 5, 1, 0.3, 1);
-                        fw.spawnParticle(Particle.CLOUD, loc, 3, 0.5, 0.2, 0.5);
+                    // Particles (same as Skript)
+                    Location loc = new Location(fw, cx, cy, cz);
+                    if (phase == 1) {
+                        fp.playSound(loc, Sound.ENTITY_ENDER_DRAGON_FLAP, 0.5f, 1f);
+                        fw.spawnParticle(Particle.FLAME, loc, 10, 1, 0.5, 1);
+                    } else if (phase == 2) {
+                        fw.spawnParticle(Particle.CLOUD, loc, 50, 2, 0.5, 2);
                     } else {
                         fw.spawnParticle(Particle.PORTAL, loc, 20, 1, 1, 1);
                     }
 
-                    tick++;
-                    if (tick >= ticksPerSegment) {
-                        tick = 0;
-                        segment++;
+                    step++;
+                    int maxSteps = (phase == 1) ? phase1Steps : (phase == 2) ? phase2Steps : phase3Steps;
+                    if (step >= maxSteps) {
+                        step = 0;
+                        phase++;
                     }
                 }
 
