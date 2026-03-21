@@ -1,5 +1,6 @@
 package com.parkourchube;
 
+import io.papermc.paper.entity.TeleportFlag;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
@@ -48,7 +49,7 @@ public class FunCommands {
             if (world == null) world = Bukkit.getWorlds().get(0);
             Location startLoc = new Location(world, 15.500, 70.400, -49.500);
 
-            // Spawn dragon (visual only — follows player)
+            // Spawn dragon — player rides it
             EnderDragon dragon = (EnderDragon) world.spawnEntity(startLoc, EntityType.ENDER_DRAGON);
             dragon.setSilent(true);
             dragon.setInvulnerable(true);
@@ -56,12 +57,8 @@ public class FunCommands {
             dragon.setAI(false);
             dragon.addScoreboardTag("cutscene_dragon");
 
-            // Put player in flying mode — velocity works reliably on flying players
-            final boolean wasFlying = player.isFlying();
-            final boolean wasAllowFlight = player.getAllowFlight();
             player.teleport(startLoc);
-            player.setAllowFlight(true);
-            player.setFlying(true);
+            dragon.addPassenger(player);
 
             showTitle(player, "&6&lFinal Stage", "");
 
@@ -93,11 +90,10 @@ public class FunCommands {
                     }
 
                     if (segment >= waypoints.length - 1) {
-                        // Finish — restore flight state and teleport to CP 60
+                        // Finish — teleport to CP 60
                         fp.playSound(fp.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1f, 1f);
                         fp.spawnParticle(Particle.PORTAL, fp.getLocation(), 200, 2, 2, 2);
-                        fp.setFlying(wasFlying);
-                        fp.setAllowFlight(wasAllowFlight);
+                        fp.leaveVehicle();
                         cleanup();
 
                         Bukkit.getScheduler().runTaskLater(plugin, () -> {
@@ -122,34 +118,29 @@ public class FunCommands {
                     double[] from = waypoints[segment];
                     double[] to = waypoints[segment + 1];
 
-                    // Target position for the NEXT tick (seeking)
-                    double nt = Math.min(1.0, (double) (tick + 1) / ticksPerSegment);
-                    double tx = from[0] + (to[0] - from[0]) * nt;
-                    double ty = from[1] + (to[1] - from[1]) * nt;
-                    double tz = from[2] + (to[2] - from[2]) * nt;
+                    // Interpolated position for this tick
+                    double t = (double) tick / ticksPerSegment;
+                    double cx = from[0] + (to[0] - from[0]) * t;
+                    double cy = from[1] + (to[1] - from[1]) * t;
+                    double cz = from[2] + (to[2] - from[2]) * t;
 
-                    // Move player with velocity — smooth flight, player can look around freely
-                    Location cur = fp.getLocation();
-                    Vector vel = new Vector(tx - cur.getX(), ty - cur.getY(), tz - cur.getZ());
-                    fp.setVelocity(vel);
-
-                    // Dragon follows the player (visual only)
-                    Location dragonLoc = fp.getLocation().clone();
+                    // Calculate yaw to face direction of travel
                     double dx = to[0] - from[0];
                     double dz = to[2] - from[2];
-                    dragonLoc.setYaw((float) Math.toDegrees(Math.atan2(-dx, dz)));
-                    dragonLoc.add(0, -2, 0); // dragon body below player
-                    dragon.teleport(dragonLoc);
+                    float yaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
+
+                    Location loc = new Location(fw, cx, cy, cz, yaw, 0f);
+
+                    // Paper API: teleport dragon WITH passenger (player stays mounted)
+                    dragon.teleport(loc, TeleportFlag.EntityState.RETAIN_PASSENGERS);
 
                     // Particles based on flight phase
                     if (segment < waypoints.length - 2) {
-                        // Climbing / cruising
-                        if (tick % 3 == 0) fp.playSound(cur, Sound.ENTITY_ENDER_DRAGON_FLAP, 0.5f, 1f);
-                        fw.spawnParticle(Particle.FLAME, cur, 5, 1, 0.3, 1);
-                        fw.spawnParticle(Particle.CLOUD, cur, 3, 0.5, 0.2, 0.5);
+                        if (tick % 3 == 0) fp.playSound(loc, Sound.ENTITY_ENDER_DRAGON_FLAP, 0.5f, 1f);
+                        fw.spawnParticle(Particle.FLAME, loc, 5, 1, 0.3, 1);
+                        fw.spawnParticle(Particle.CLOUD, loc, 3, 0.5, 0.2, 0.5);
                     } else {
-                        // Diving down (last segment)
-                        fw.spawnParticle(Particle.PORTAL, cur, 20, 1, 1, 1);
+                        fw.spawnParticle(Particle.PORTAL, loc, 20, 1, 1, 1);
                     }
 
                     tick++;

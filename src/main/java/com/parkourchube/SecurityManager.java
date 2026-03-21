@@ -22,6 +22,7 @@ public class SecurityManager {
     private final int heartbeatMinutes;
     private String serverUuid;
     private BukkitTask heartbeatTask;
+    private volatile boolean approved = false;
 
     public SecurityManager(ParkourCubePlugin plugin) {
         this.plugin = plugin;
@@ -57,14 +58,17 @@ public class SecurityManager {
                 String status = response.has("status") ? response.get("status").getAsString() : "unknown";
 
                 if ("approved".equals(status)) {
+                    approved = true;
                     Bukkit.getScheduler().runTask(plugin, () -> callback.accept(true));
                 } else if ("banned".equals(status)) {
+                    approved = false;
                     String reason = response.has("reason") ? response.get("reason").getAsString() : "No reason provided";
                     plugin.getLogger().severe("Server is BANNED: " + reason);
                     Bukkit.getScheduler().runTask(plugin, () -> callback.accept(false));
                 } else {
+                    approved = false;
                     plugin.getLogger().warning("Server is PENDING approval. UUID: " + serverUuid);
-                    plugin.getLogger().warning("Plugin will load, but please approve this server in the tracker dashboard.");
+                    plugin.getLogger().warning("Players will be kicked until admin approves this server.");
                     Bukkit.getScheduler().runTask(plugin, () -> callback.accept(true));
                 }
             } catch (Exception e) {
@@ -79,7 +83,13 @@ public class SecurityManager {
         long intervalTicks = heartbeatMinutes * 60L * 20L;
         heartbeatTask = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> {
             try {
-                sendPing("heartbeat");
+                JsonObject response = sendPing("heartbeat");
+                String status = response.has("status") ? response.get("status").getAsString() : "unknown";
+                boolean wasApproved = approved;
+                approved = "approved".equals(status);
+                if (!wasApproved && approved) {
+                    plugin.getLogger().info("[Tracker] Server has been APPROVED by admin!");
+                }
             } catch (Exception e) {
                 plugin.getLogger().warning("Heartbeat failed: " + e.getMessage());
             }
@@ -151,6 +161,8 @@ public class SecurityManager {
 
         return JsonParser.parseString(responseStr).getAsJsonObject();
     }
+
+    public boolean isApproved() { return approved; }
 
     public String getServerUuid() { return serverUuid; }
 

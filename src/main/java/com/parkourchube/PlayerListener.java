@@ -46,6 +46,17 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
+
+        // Check admin approval — kick if server is not yet approved
+        if (plugin.getSecurityManager() != null && !plugin.getSecurityManager().isApproved()) {
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                if (player.isOnline()) {
+                    player.kick(Component.text("§c§lรอแอดมินอนุมัติ\n\n§7เซิร์ฟเวอร์นี้ยังไม่ได้รับการอนุมัติ\n§7กรุณาติดต่อแอดมินเพื่ออนุมัติก่อนเข้าเล่น"));
+                }
+            }, 3L);
+            return;
+        }
+
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
                     "scoreboard players set " + player.getName() + " checkpoint 0");
