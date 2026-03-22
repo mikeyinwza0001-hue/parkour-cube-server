@@ -34,8 +34,14 @@ app.get('/api/checkpoints', (req, res) => {
 let currentCp = 0;
 let maxCp = 60;
 
+// HTTP polling endpoint for cross-origin overlays
+app.get('/api/state', (_req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.json({ current: currentCp, max: maxCp });
+});
+
 // Serve the overlay HTML file
-app.get('/', (req, res) => {
+app.get(['/', '/overlay.html'], (req, res) => {
     res.sendFile(path.join(__dirname, 'overlay.html'));
 });
 
@@ -86,9 +92,9 @@ io.on('connection', (socket) => {
     socket.emit('cp_update', { current: currentCp, max: maxCp });
 });
 
-http.listen(PORT, () => {
+http.listen(PORT, '0.0.0.0', () => {
     console.log('===================================================');
-    console.log(`[CP Overlay] Server is running on http://localhost:${PORT}`);
+    console.log(`[CP Overlay] Server is running on http://127.0.0.1:${PORT}`);
     console.log(`Add this URL as a Browser Source in OBS!`);
     console.log('===================================================');
 });
