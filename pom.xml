@@ -6,7 +6,7 @@
 
     <groupId>com.parkourchube</groupId>
     <artifactId>ParkourCube</artifactId>
-    <version>2.1.5</version>
+    <version>3.2.4</version>
     <packaging>jar</packaging>
 
     <name>ParkourCube</name>
