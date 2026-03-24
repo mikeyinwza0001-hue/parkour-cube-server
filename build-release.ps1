@@ -35,7 +35,6 @@ $excludeFiles = @(
     "build-release.ps1",
     ".gitignore",
     ".gitattributes",
-    "paper.jar",
     "mabel_folders.txt",
     "mabel_installed.txt",
     "mblt_files.txt",

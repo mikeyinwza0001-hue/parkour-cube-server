@@ -1,0 +1,87 @@
+# JCinematic-Free Configuration
+# Version: 2.0
+# Compatible with Minecraft 1.20 - 1.21.11
+
+# ===============================================
+# PLAYBACK SETTINGS
+# ===============================================
+
+# Game mode to set player to when cinematic ends
+# Options: SURVIVAL, CREATIVE, ADVENTURE, SPECTATOR
+end-game-mode: SURVIVAL
+
+# Cinematic speed multiplier (NOT RECOMMENDED - use custom duration instead)
+# Use /cinematic play <n> <duration>s for better control
+# Default: 1 (normal speed)
+cinematic-speed: 1
+
+# ===============================================
+# ACTION BAR SETTINGS
+# ===============================================
+
+# Show action bar with remaining time during playback
+show-action-bar: true
+
+# Action bar message format
+# %seconds% will be replaced with remaining seconds
+action-bar-format: '§eTiempo restante: §a%seconds% segundos'
+
+# ===============================================
+# PLAYER EXPERIENCE SETTINGS
+# ===============================================
+
+# Hide other players during cinematic playback
+# Provides cleaner cinematic experience
+hide-other-players: true
+
+# Lock camera movement during playback
+# Players won't be able to look around
+lock-camera: true
+
+# ===============================================
+# SMOOTH TRANSITIONS SETTINGS
+# ===============================================
+
+# Enable smooth transitions between recorded points
+# Adds interpolation for smoother camera movement
+smooth-transitions: true
+
+# Number of interpolation points between each recorded location
+# Higher = smoother but more processing
+# Recommended: 10-20 for ultra-smooth cinematics
+# Default: 15 (VERY SMOOTH)
+interpolation-points: 15
+
+# Use advanced curve interpolation (Catmull-Rom spline)
+# Creates ultra-smooth curved paths instead of straight lines
+# Highly recommended for cinematic quality
+# Default: true
+use-bezier-curves: true
+
+# Use easing function for smoother acceleration/deceleration
+# Makes movements feel more natural and professional
+use-easing: true
+
+# ===============================================
+# LANGUAGE SETTINGS
+# ===============================================
+
+# Default language for the plugin
+# Available: en (English), es (Spanish)
+# Add more by creating files in plugins/JCinematic/languages/
+default-language: en
+
+# ===============================================
+# ADVANCED SETTINGS
+# ===============================================
+
+# These settings are for advanced users only
+# Changing these may affect plugin performance
+
+# Maximum distance for safe teleportation (in blocks)
+# Default: 10000
+# max-teleport-distance: 10000
+
+# Enable debug logging
+# Shows detailed information in console
+# debug-mode: false

@@ -1,1 +1,1 @@
-{"version":"3.2.9","mc_version":"1.21.10","description":"Parkour Cube Server","changelog":"v3.2.9 — Upgrade paper.jar to 1.21.10 build 129, fix datapack compatibility."}
+{"version":"3.2.10","mc_version":"1.21.1","description":"Parkour Cube Server","changelog":"v3.2.10 — Fix lava teleport bug in ParkourCube plugin, bundle paper.jar in release zip."}

@@ -1,0 +1,48 @@
+prefix: §6[JCinematic] §r
+recording:
+  started: ¡Grabación iniciada!
+  finished: ¡Grabación finalizada!
+  save_prompt: Usa §6/cinematic save <nombre> §rpara guardar la cinemática.
+  already_recording: Ya estás grabando una cinemática.
+  duration_invalid: La duración debe ser mayor a 0 segundos.
+  countdown: Preparando grabación...
+  paused: Grabación en pausa.
+  resuming: Reanudando en...
+  resumed: Grabación reanudada.
+save:
+  no_recording: No hay ninguna cinemática grabada para guardar.
+  exists: Ya existe una cinemática con ese nombre.
+  success: 'Cinemática guardada como: §e%name%'
+  error: 'Error al guardar la cinemática: %error%'
+play:
+  not_found: 'No se encontró la cinemática: §e%name%'
+  already_playing: Ya estás viendo una cinemática.
+  started: 'Reproduciendo cinemática: §e%name%'
+  finished: Cinemática finalizada.
+  time_remaining: 'Tiempo restante: §a%seconds% segundos'
+stop:
+  none_active: No hay ninguna cinemática activa para detener.
+  stopped: Cinemática detenida.
+  recording_stopped: Grabación detenida.
+  all_stopped: Todas las cinemáticas han sido detenidas.
+reload:
+  success: ¡Configuración recargada con éxito!
+  no_permission: No tienes permiso para recargar el plugin.
+error:
+  player_only: Este comando solo puede ser usado por jugadores.
+  no_permission: No tienes permiso para usar este comando.
+  no_permission_all: No tienes permiso para reproducir cinemáticas para todos.
+  no_permission_stop_all: No tienes permiso para detener cinemáticas de otros jugadores.
+  general: 'Ocurrió un error: %error%'
+help:
+  title: === Comandos de Cinemáticas ===
+  rec: §e/cinematic rec <duración> §7- Inicia la grabación de una cinemática
+  save: §e/cinematic save <nombre> §7- Guarda la cinemática grabada
+  play: §e/cinematic play <nombre> [@a] [duración] §7- Reproduce una cinemática
+  stop: §e/cinematic stop [@a] §7- Detiene la cinemática actual
+  lang: §e/cinematic lang <idioma> §7- Cambia el idioma
+  reload: §e/cinematic reload §7- Recarga la configuración del plugin
+  footer: ===========================
+lang:
+  changed: Idioma cambiado a Español.
+  not_found: 'Idioma no encontrado. Idiomas disponibles: %languages%'
