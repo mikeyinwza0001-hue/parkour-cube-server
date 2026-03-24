@@ -1,0 +1,52 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js (for overlay dependencies)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Read version from server-version.json
+        id: version
+        shell: pwsh
+        run: |
+          $v = (Get-Content .\server-version.json | ConvertFrom-Json)
+          echo "VERSION=$($v.version)" >> $env:GITHUB_OUTPUT
+          echo "MC_VERSION=$($v.mc_version)" >> $env:GITHUB_OUTPUT
+          echo "CHANGELOG=$($v.changelog)" >> $env:GITHUB_OUTPUT
+
+      - name: Build release zip
+        shell: pwsh
+        run: |
+          .\build-release.ps1
+
+      - name: Upload Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "v${{ steps.version.outputs.VERSION }} - Minecraft ${{ steps.version.outputs.MC_VERSION }}"
+          body: |
+            ## Parkour Cube Server v${{ steps.version.outputs.VERSION }}
+            
+            **Minecraft Version:** ${{ steps.version.outputs.MC_VERSION }}
+            
+            ${{ steps.version.outputs.CHANGELOG }}
+            
+            ---
+            > Auto-generated release from GitHub Actions
+          files: release/mabel-parkour-cube-server-v${{ steps.version.outputs.VERSION }}.zip
+          draft: false
+          prerelease: false

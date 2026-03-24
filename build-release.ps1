@@ -42,11 +42,13 @@ $excludeFiles = @(
     "mblt_root.txt",
     "parkour_assets.txt",
     "release_assets.txt",
-    "remote_info.txt"
+    "remote_info.txt",
+    "version_history.json"
 )
 
 $excludeDirs = @(
     ".git",
+    ".github",
     ".vscode",
     "logs",
     "crash-reports",

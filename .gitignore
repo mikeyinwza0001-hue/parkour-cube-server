@@ -29,6 +29,10 @@ plugins/Skript/logs/checkpoint_export.log
 # Node modules
 node_modules/
 
+# Auto-update temp files
+_update_temp/
+_update_*.zip
+
 # OS files
 Thumbs.db
 desktop.ini
