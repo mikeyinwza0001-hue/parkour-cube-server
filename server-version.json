@@ -1,1 +1,1 @@
-{"version":"3.2.8","mc_version":"1.21.10","description":"Parkour Cube Server","changelog":"v3.2.8 — Add GitHub Actions auto-release, auto-update support for Mabelity, fix template path resolution."}
+{"version":"3.2.9","mc_version":"1.21.10","description":"Parkour Cube Server","changelog":"v3.2.9 — Upgrade paper.jar to 1.21.10 build 129, fix datapack compatibility."}
