@@ -1,1 +1,1 @@
-{"version":"3.3.1","mc_version":"1.21.10","description":"Parkour Cube Server","changelog":"v3.3.1 — Support custom 1.21.10 local paper jar and updated api-version"}
+{"version":"3.3.2","mc_version":"1.21.10","description":"Parkour Cube Server","changelog":"v3.3.2 — Strider riding lava exemption: riding on lava surface no longer triggers checkpoint warp, but lava flowing from above still does"}
