@@ -16,6 +16,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
@@ -84,6 +85,7 @@ public class PlayerListener implements Listener {
     public void onInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
         if (!event.getAction().isRightClick()) return;
+        if (event.getHand() != EquipmentSlot.HAND) return;
         if (player.getInventory().getItemInMainHand().getType() != Material.COMPASS) return;
         if (!player.getInventory().getItemInMainHand().hasItemMeta()) return;
         if (!player.getInventory().getItemInMainHand().getItemMeta().hasDisplayName()) return;
@@ -123,6 +125,22 @@ public class PlayerListener implements Listener {
             player.setFireTicks(0);
             teleportToCheckpoint(player);
             player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1f, 1f);
+        } else if (event.getCause() == EntityDamageEvent.DamageCause.LAVA
+                || event.getCause() == EntityDamageEvent.DamageCause.FIRE
+                || event.getCause() == EntityDamageEvent.DamageCause.FIRE_TICK) {
+            event.setCancelled(true);
+            player.setFireTicks(0);
+            if (!lavaWarping.contains(player.getUniqueId())) {
+                lavaWarping.add(player.getUniqueId());
+                player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_HURT, 1f, 1f);
+                player.playSound(player.getLocation(), Sound.BLOCK_FIRE_EXTINGUISH, 1f, 1f);
+                Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    player.setFireTicks(0);
+                    teleportToCheckpoint(player);
+                    player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1f, 1f);
+                    lavaWarping.remove(player.getUniqueId());
+                }, 10L);
+            }
         } else if (event.getCause() != EntityDamageEvent.DamageCause.ENTITY_EXPLOSION
                 && event.getCause() != EntityDamageEvent.DamageCause.BLOCK_EXPLOSION) {
             event.setDamage(0);
