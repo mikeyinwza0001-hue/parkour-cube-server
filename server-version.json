@@ -1,1 +1,1 @@
-{"version":"3.3.4","mc_version":"1.21.10","description":"Parkour Cube Server","changelog":"v3.3.4 — Fix: allow players to join when tracker is unreachable (offline mode)"}
+{"version":"3.3.5","mc_version":"1.21.10","description":"Parkour Cube Server","changelog":"v3.3.5 — Fix: compass now in slot 1 (hotbar first slot), clears other inventory items"}
