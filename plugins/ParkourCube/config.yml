@@ -2,7 +2,7 @@
 
 # Mabel Tracker security
 tracker:
-  url: "https://mabeltracker.up.railway.app"
+  url: "http://localhost:3000"
   plugin-name: "ParkourCube"
   # Heartbeat interval in minutes
   heartbeat-minutes: 5

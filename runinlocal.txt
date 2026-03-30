@@ -1,0 +1,191 @@
+Starting Minecraft Server...
+Starting org.bukkit.craftbukkit.Main
+*** Warning, you've not updated in a while! ***
+*** Please download a new build from https://papermc.io/downloads/paper ***
+[01:56:51 INFO]: [bootstrap] Running Java 21 (OpenJDK 64-Bit Server VM 21.0.8+9-LTS; Amazon.com Inc. Corretto-21.0.8.9.1) on Windows 11 10.0 (amd64)
+[01:56:51 INFO]: [bootstrap] Loading Paper 1.21.10-129-ver/1.21.10@3e25649 (2025-12-19T23:34:30Z) for Minecraft 1.21.10
+[01:56:51 INFO]: [PluginInitializerManager] Initializing plugins...
+[01:56:52 INFO]: [PluginInitializerManager] Initialized 10 plugins
+[01:56:52 INFO]: [PluginInitializerManager] Paper plugins (1):
+ - SkBee (3.17.0)
+[01:56:52 INFO]: [PluginInitializerManager] Bukkit plugins (9):
+ - AquilaCine (0.1.0), JCinematic-Free (9.0.1), ParkourCube (3.3.0), ServerTap (0.6.1), Skript (2.14.1), TuMinijuego (1.0), ViaBackwards (5.7.2), ViaVersion (5.7.2), skRayFall (1.9.29)
+[01:56:56 INFO]: Environment: Environment[sessionHost=https://sessionserver.mojang.com, servicesHost=https://api.minecraftservices.com, profilesHost=https://api.mojang.com, name=PROD]
+[01:56:56 INFO]: [ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry] Initialising converters for DataConverter...
+[01:56:57 INFO]: [ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry] Finished initialising converters for DataConverter in 438.0ms
+[01:56:57 ERROR]: Couldn't load file/main pack metadata: Pack declares support for version newer than 81, but is missing mandatory fields min_format and max_format
+[01:56:58 INFO]: Loaded 0 recipes
+[01:56:58 INFO]: Loaded 17 advancements
+[01:56:58 INFO]: Starting minecraft server version 1.21.10
+[01:56:58 INFO]: Loading properties
+[01:56:58 INFO]: This server is running Paper version 1.21.10-129-ver/1.21.10@3e25649 (2025-12-19T23:34:30Z) (Implementing API version 1.21.10-R0.1-SNAPSHOT)
+[01:56:58 INFO]: [spark] This server bundles the spark profiler. For more information please visit https://docs.papermc.io/paper/profiling
+[01:56:58 INFO]: Server Ping Player Sample Count: 12
+[01:56:58 INFO]: Using 4 threads for Netty based IO
+[01:56:59 INFO]: [MoonriseCommon] Paper is using 6 worker threads, 1 I/O threads
+[01:56:59 INFO]: Default game type: SURVIVAL
+[01:56:59 INFO]: Generating keypair
+[01:56:59 INFO]: Starting Minecraft server on *:25565
+[01:56:59 INFO]: Using default channel type
+[01:56:59 INFO]: Paper: Using Java compression from Velocity.
+[01:56:59 INFO]: Paper: Using Java cipher from Velocity.
+[01:57:00 INFO]: [ViaVersion] Loading server plugin ViaVersion v5.7.2
+[01:57:00 INFO]: [ViaVersion] ViaVersion 5.7.2 is now loaded. Registering protocol transformers and injecting...
+[01:57:00 INFO]: [ViaVersion] Loading block connection mappings ...
+[01:57:00 INFO]: [ViaVersion] Using FastUtil Long2ObjectOpenHashMap for block connections
+[01:57:01 INFO]: [ViaBackwards] Loading translations...
+[01:57:01 INFO]: [ViaBackwards] Registering protocols...
+[01:57:01 INFO]: [Skript] Loading server plugin Skript v2.14.1
+[01:57:01 INFO]: [ViaBackwards] Loading server plugin ViaBackwards v5.7.2
+[01:57:01 INFO]: [skRayFall] Loading server plugin skRayFall v1.9.29
+[01:57:01 INFO]: [SkBee] Loading server plugin SkBee v3.17.0
+[01:57:01 INFO]: [ServerTap] Loading server plugin ServerTap v0.6.1
+[01:57:01 INFO]: [ParkourCube] Loading server plugin ParkourCube v3.3.0
+[01:57:01 INFO]: [JCinematic-Free] Loading server plugin JCinematic-Free v9.0.1
+[01:57:01 INFO]: [TuMinijuego] Loading server plugin TuMinijuego v1.0
+[01:57:01 INFO]: [AquilaCine] Loading server plugin AquilaCine v0.1.0
+[01:57:01 INFO]: Server permissions file permissions.yml is empty, ignoring it
+[01:57:01 INFO]: [ServerTap] Enabling ServerTap v0.6.1
+[01:57:01 INFO]: [ServerTap] No Vault plugin detected
+[01:57:02 WARN]: [ServerTap] TLS is not enabled.
+[01:57:02 INFO]: [ServerTap] Enabling CORS for *
+[01:57:02 WARN]: [ServerTap] AUTH KEY IS SET TO DEFAULT "change_me"
+[01:57:02 WARN]: [ServerTap] CHANGE THE key IN THE config.yml FILE
+[01:57:02 WARN]: [ServerTap] FAILURE TO CHANGE THE KEY MAY RESULT IN SERVER COMPROMISE
+[01:57:02 INFO]: [io.javalin.Javalin] Starting Javalin ...
+[01:57:02 INFO]: [org.eclipse.jetty.server.Server] jetty-11.0.15; built: 2023-04-11T18:37:53.775Z; git: 5bc5e562c8d05c5862505aebe5cf83a61bdbcb96; jvm 21.0.8+9-LTS
+[01:57:02 INFO]: [org.eclipse.jetty.server.session.DefaultSessionIdManager] Session workerName=node0
+[01:57:02 INFO]: [org.eclipse.jetty.server.handler.ContextHandler] Started i.j.j.@623019a{/,null,AVAILABLE}
+[01:57:02 INFO]: [org.eclipse.jetty.server.AbstractConnector] Started ServerConnector@25364359{HTTP/1.1, (http/1.1)}{0.0.0.0:4567}
+[01:57:02 INFO]: [org.eclipse.jetty.server.Server] Started Server@55fc49f0{STARTING}[11.0.15,sto=0] @12360ms
+[01:57:02 INFO]: [io.javalin.Javalin] Your JDK supports Loom. Javalin will prefer Virtual Threads by default. Disable with `ConcurrencyUtil.useLoom = false`.
+[01:57:02 INFO]: [io.javalin.Javalin] Listening on http://localhost:4567/
+[01:57:02 INFO]: [io.javalin.Javalin] You are running Javalin 5.6.2 (released July 31, 2023. Your Javalin version is 967 days old. Consider checking for a newer version.).
+[01:57:02 INFO]: [io.javalin.Javalin] Javalin started in 289ms \o/
+[01:57:02 WARN]: **** SERVER IS RUNNING IN OFFLINE/INSECURE MODE!
+[01:57:02 WARN]: The server will make no attempt to authenticate usernames. Beware.
+[01:57:02 WARN]: While this makes the game possible to play without internet access, it also opens up the ability for hackers to connect with any username they choose.
+[01:57:02 WARN]: To change this, set "online-mode" to "true" in the server.properties file.
+[01:57:02 INFO]: Preparing level "world"
+[01:57:02 INFO]: Loading 0 persistent chunks for world 'minecraft:overworld'...
+[01:57:02 INFO]: Preparing spawn area: 100%
+[01:57:02 INFO]: Prepared spawn area in 1 ms
+[01:57:02 INFO]: Loading 0 persistent chunks for world 'minecraft:the_nether'...
+[01:57:02 INFO]: Prepared spawn area in 0 ms
+[01:57:02 INFO]: Loading 0 persistent chunks for world 'minecraft:the_end'...
+[01:57:02 INFO]: Prepared spawn area in 0 ms
+[01:57:02 INFO]: Done preparing level "world" (0.400s)
+[01:57:02 INFO]: [ViaVersion] Enabling ViaVersion v5.7.2
+[01:57:03 INFO]: [ViaVersion] ViaVersion detected server version: 1.21.9-1.21.10 (773)
+[01:57:03 INFO]: [Skript] Enabling Skript v2.14.1
+[01:57:04 INFO]: [Skript] A new version of Skript is available: 2.14.3 (you're currently running 2.14.1)
+[01:57:04 INFO]: Download it at: https://github.com/SkriptLang/Skript/releases/download/2.14.3/Skript-2.14.3.jar
+[01:57:04 INFO]: [Skript]  ~ created by & © Peter Güttinger aka Njol ~
+[01:57:04 INFO]: [ViaBackwards] Enabling ViaBackwards v5.7.2
+[01:57:04 INFO]: [skRayFall] Enabling skRayFall v1.9.29
+[01:57:04 INFO]: [skRayFall] Enabling skRayFall 1.9.29
+[01:57:05 INFO]: [skRayFall] Citizens not found!
+[01:57:05 INFO]: [skRayFall] Enabling EffectLib
+[01:57:05 INFO]: [skRayFall] No Votifier Found
+[01:57:05 INFO]: [skRayFall] Enabling 1.8+ support
+[01:57:05 INFO]: [skRayFall] Enabling 1.9+ support
+[01:57:05 INFO]: [skRayFall] Enabling 1.17+ support
+[01:57:05 INFO]: [Skript] Loaded 5650 aliases in 821ms
+[01:57:05 INFO]: [skRayFall] skRayFall is ready
+[01:57:05 INFO]: [SkBee] Enabling SkBee v3.17.0
+[01:57:06 INFO]: [SkBee] Loading NBTApi...
+[01:57:06 INFO]: [SkBee] [NBTAPI] Found Minecraft: 1.21.10! Trying to find NMS support
+[01:57:06 INFO]: [SkBee] [NBTAPI] NMS support 'MC1_21_R6' loaded!
+[01:57:06 INFO]: [SkBee] Successfully loaded NBTApi!
+[01:57:06 INFO]: [SkBee] NBT Elements successfully loaded
+[01:57:06 INFO]: [SkBee] Advancement Elements successfully loaded
+[01:57:06 INFO]: [SkBee] BossBar Elements successfully loaded
+[01:57:06 INFO]: [SkBee] Bound Elements successfully loaded
+[01:57:06 INFO]: [SkBee] Damage Source Elements successfully loaded
+[01:57:06 INFO]: [SkBee]  - Do note these elements are in Skript as 'Experimental'
+[01:57:06 INFO]: [SkBee]  - If issues arise, disable this feature and use Skript's elements instead
+[01:57:06 INFO]: [SkBee] Dialog Elements successfully loaded
+[01:57:06 INFO]: [SkBee] Fastboard[Adventure] Elements successfully loaded
+[01:57:06 INFO]: [SkBee] Fishing Elements successfully loaded
+[01:57:06 INFO]: [SkBee] Game Event Elements successfully loaded
+[01:57:06 INFO]: [SkBee] Item Component Elements successfully loaded
+[01:57:06 INFO]: [SkBee] Property Elements successfully loaded
+[01:57:06 INFO]: [SkBee] RayTrace Elements successfully loaded
+[01:57:06 INFO]: [SkBee] Recipe Elements successfully loaded
+[01:57:06 INFO]: [SkBee] Registry Elements successfully loaded
+[01:57:06 INFO]: [SkBee] Scoreboard Elements successfully loaded
+[01:57:06 INFO]: [SkBee] Statistic Elements successfully loaded
+[01:57:06 INFO]: [SkBee] Structure Elements successfully loaded
+[01:57:06 INFO]: [SkBee] SwitchCase Elements successfully loaded
+[01:57:06 INFO]: [SkBee] Text Component Elements successfully loaded
+[01:57:06 INFO]: [SkBee] Tick Manager Elements successfully loaded
+[01:57:06 INFO]: [SkBee] Villager Elements successfully loaded
+[01:57:06 INFO]: [SkBee] Virtual Furnace Elements disabled via config
+[01:57:06 INFO]: [SkBee] World Creator Elements successfully loaded
+[01:57:06 INFO]: [SkBee] Chunk Generator Elements successfully loaded
+[01:57:06 INFO]: [SkBee] Loaded SkBee (519) elements:
+[01:57:06 INFO]: [SkBee]  - 67 types
+[01:57:06 INFO]: [SkBee]  - 2 structures
+[01:57:06 INFO]: [SkBee]  - 53 events
+[01:57:06 INFO]: [SkBee]  - 47 sections
+[01:57:06 INFO]: [SkBee]  - 71 effects
+[01:57:06 INFO]: [SkBee]  - 241 expressions
+[01:57:06 INFO]: [SkBee]  - 27 conditions
+[01:57:06 INFO]: [SkBee]  - 11 properties
+[01:57:06 INFO]: [SkBee] Checking for update...
+[01:57:06 INFO]: [SkBee] Plugin is not up to date!
+[01:57:06 INFO]: [SkBee]  - Current version: v3.17.0
+[01:57:06 INFO]: [SkBee]  - Available update: v3.18.1
+[01:57:06 INFO]: [SkBee]  - Download at: https://modrinth.com/plugin/skbee/version/3.18.1
+[01:57:06 INFO]: [SkBee] Successfully enabled v3.17.0 in 0.61 seconds
+[01:57:06 INFO]: [ParkourCube] Enabling ParkourCube v3.3.0
+[01:57:06 INFO]: [JCinematic-Free] Enabling JCinematic-Free v9.0.1
+[01:57:06 INFO]: [JCinematic-Free] Loaded language: en
+[01:57:06 INFO]: [JCinematic-Free] Loaded language: es
+[01:57:06 INFO]: [JCinematic-Free] ========================
+[01:57:06 INFO]: [JCinematic-Free] JCinematic-Free Plugin Enabled!
+[01:57:06 INFO]: [JCinematic-Free] Author: Jon117-EtherStudio
+[01:57:06 INFO]: [JCinematic-Free] Version: 9.0.1
+[01:57:06 INFO]: [JCinematic-Free] Compatible with Minecraft 1.20 to 1.21.11
+[01:57:06 INFO]: [JCinematic-Free] Loaded 2 language(s)
+[01:57:06 INFO]: [JCinematic-Free] ========================
+[01:57:06 INFO]: [TuMinijuego] Enabling TuMinijuego v1.0
+[01:57:06 WARN]: java.io.IOException: The system cannot find the path specified
+[01:57:06 WARN]:        at java.base/java.io.WinNTFileSystem.createFileExclusively0(Native Method)
+[01:57:06 WARN]:        at java.base/java.io.WinNTFileSystem.createFileExclusively(WinNTFileSystem.java:536)
+[01:57:06 WARN]:        at java.base/java.io.File.createNewFile(File.java:1045)
+[01:57:06 WARN]:        at cinematic.jar//didacculo.CinematicStorage.loadFile(CinematicStorage.java:29)
+[01:57:06 WARN]:        at cinematic.jar//didacculo.CinematicStorage.<init>(CinematicStorage.java:22)
+[01:57:06 WARN]:        at cinematic.jar//didacculo.Cinematic.onEnable(Cinematic.java:20)
+[01:57:06 WARN]:        at org.bukkit.plugin.java.JavaPlugin.setEnabled(JavaPlugin.java:279)
+[01:57:06 WARN]:        at io.papermc.paper.plugin.manager.PaperPluginInstanceManager.enablePlugin(PaperPluginInstanceManager.java:202)
+[01:57:06 WARN]:        at io.papermc.paper.plugin.manager.PaperPluginManagerImpl.enablePlugin(PaperPluginManagerImpl.java:109)
+[01:57:06 WARN]:        at org.bukkit.plugin.SimplePluginManager.enablePlugin(SimplePluginManager.java:520)
+[01:57:06 WARN]:        at org.bukkit.craftbukkit.CraftServer.enablePlugin(CraftServer.java:639)
+[01:57:06 WARN]:        at org.bukkit.craftbukkit.CraftServer.enablePlugins(CraftServer.java:596)
+[01:57:06 WARN]:        at net.minecraft.server.MinecraftServer.initPostWorld(MinecraftServer.java:637)
+[01:57:06 WARN]:        at net.minecraft.server.dedicated.DedicatedServer.initServer(DedicatedServer.java:368)
+[01:57:06 WARN]:        at net.minecraft.server.MinecraftServer.runServer(MinecraftServer.java:1257)
+[01:57:06 WARN]:        at net.minecraft.server.MinecraftServer.lambda$spin$2(MinecraftServer.java:384)
+[01:57:06 WARN]:        at java.base/java.lang.Thread.run(Thread.java:1583)
+[01:57:06 INFO]: [TuMinijuego] Sistema de cinemáticas cargado correctamente.
+[01:57:06 INFO]: [AquilaCine] Enabling AquilaCine v0.1.0
+[01:57:06 INFO]: Loaded camera drive: DemoCinematic
+[01:57:06 INFO]: Loaded camera drive: UltimateShowcase
+[01:57:06 INFO]: Camera Drives Plugin enabled!
+[01:57:06 INFO]: [spark] Starting background profiler...
+[01:57:06 INFO]: [spark] The async-profiler engine is not supported for your os/arch (windows11/amd64), so the built-in Java engine will be used instead.
+[01:57:06 INFO]: Running delayed init tasks
+[01:57:06 INFO]: [ViaVersion] Finished mapping loading, shutting down loader executor.
+[01:57:06 INFO]: [Skript] Loading variables...
+[01:57:06 INFO]: [Skript] Loaded 251 variables in 0.0 seconds
+[01:57:07 INFO]: [Skript] All scripts loaded without errors.
+[01:57:07 INFO]: [Skript]     No scripts were found, maybe you should write some ;)
+[01:57:07 INFO]: [Skript] Finished loading.
+[01:57:07 INFO]: Done (16.486s)! For help, type "help"
+[01:57:07 INFO]: [ParkourCube] Security check passed. Loading plugin...
+[01:57:07 INFO]: [ParkourCube] Loaded 61 warps and 61 beacons from file.
+[01:57:07 INFO]: An objective already exists by that name
+[01:57:07 INFO]: [ParkourCube] ParkourCube v3.3.0 enabled!
+[01:57:07 WARN]: [ParkourCube] Failed to load checkpoints from API: Connection refused: getsockopt
+>

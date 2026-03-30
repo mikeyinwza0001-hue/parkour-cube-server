@@ -8,6 +8,18 @@ if exist "jre\bin\java.exe" (
     echo [!] Using bundled JRE...
 )
 
+:: ─── Start Mabel Tracker ─────────────────────────────────────────────────────
+set TRACKER_NODE=node
+if exist "..\mabel-tracker\node.exe" (
+    set TRACKER_NODE="..\mabel-tracker\node.exe"
+)
+if exist "..\mabel-tracker\server.js" (
+    echo [Mabel Tracker] Starting tracker server on port 3000...
+    start /b cmd /c "cd ..\mabel-tracker && %TRACKER_NODE% server.js"
+    timeout /t 2 /nobreak >nul
+)
+
+:: ─── Start CP Overlay ────────────────────────────────────────────────────────
 echo Starting Overlay Server...
 start /b cmd /c "cd plugins\Skript\scripts\cp_overlay && start.bat"
 
@@ -23,4 +35,4 @@ if %ERRORLEVEL% neq 0 (
     echo [!] Please make sure you have Java 17 or higher installed.
     echo [!] You can download it from: https://adoptium.net/
     pause
-)
+)

@@ -100,6 +100,18 @@ foreach ($item in $allItems) {
     }
 }
 
+# ─── Remove old ParkourCube jars (keep only current) ──
+$assets = Get-Content ".\parkour_assets.txt" | Where-Object { $_ -match '\.jar$' }
+$currentPlugin = $assets | Where-Object { $_ -match '^ParkourCube-' }
+if ($currentPlugin) {
+    $oldJars = Get-ChildItem -Path "$tempDir\plugins" -Filter "ParkourCube-*.jar" -ErrorAction SilentlyContinue |
+               Where-Object { $_.Name -ne $currentPlugin }
+    foreach ($old in $oldJars) {
+        Write-Host "  Removing old plugin: $($old.Name)" -ForegroundColor DarkYellow
+        Remove-Item $old.FullName -Force
+    }
+}
+
 # ─── Create empty required files ──────────────────────
 "[]" | Set-Content "$tempDir\ops.json"
 "[]" | Set-Content "$tempDir\whitelist.json"
