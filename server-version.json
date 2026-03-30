@@ -1,1 +1,1 @@
-{"version":"3.3.3","mc_version":"1.21.10","description":"Parkour Cube Server","changelog":"v3.3.3 — Fix: bundle now includes Paper 1.21.10 (build 129)"}
+{"version":"3.3.4","mc_version":"1.21.10","description":"Parkour Cube Server","changelog":"v3.3.4 – Fix: online-mode=false for offline/LAN clients"}
