@@ -1,1 +1,1 @@
-{"version":"3.3.6","mc_version":"1.21.10","description":"Parkour Cube Server","changelog":"v3.3.6 — Fix: suppress tracker connection warning (non-blocking)"}
+{"version":"3.3.8","mc_version":"1.21.10","description":"Parkour Cube Server","changelog":"v3.3.8 - Full server bundle release (world + all plugins included). ParkourCube plugin v3.3.5 with Mabel Tracker integration."}
