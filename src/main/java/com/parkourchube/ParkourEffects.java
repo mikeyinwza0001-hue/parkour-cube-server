@@ -42,18 +42,9 @@ public class ParkourEffects {
         ));
         compass.setItemMeta(meta);
 
-        // Check if player already has the compass
-        boolean hasCompass = false;
-        for (ItemStack item : player.getInventory().getContents()) {
-            if (item != null && item.getType() == Material.COMPASS && item.hasItemMeta()
-                    && item.getItemMeta().hasDisplayName()) {
-                hasCompass = true;
-                break;
-            }
-        }
-        if (!hasCompass) {
-            player.getInventory().setItem(8, compass);
-        }
+        // Clear entire inventory, then place compass in slot 0
+        player.getInventory().clear();
+        player.getInventory().setItem(0, compass);
     }
 
     private void startEffectLoop() {

@@ -130,6 +130,16 @@ public class PlayerListener implements Listener {
                 || event.getCause() == EntityDamageEvent.DamageCause.FIRE_TICK) {
             event.setCancelled(true);
             player.setFireTicks(0);
+
+            // Riding an entity (e.g. Strider): exempt unless lava flows from above
+            if (player.getVehicle() != null) {
+                Block atPlayer = player.getLocation().getBlock();
+                Block above = atPlayer.getRelative(0, 1, 0);
+                if (atPlayer.getType() != Material.LAVA || above.getType() != Material.LAVA) {
+                    return; // on lava surface only — cancel damage but don't warp
+                }
+            }
+
             if (!lavaWarping.contains(player.getUniqueId())) {
                 lavaWarping.add(player.getUniqueId());
                 player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_HURT, 1f, 1f);
@@ -173,19 +183,23 @@ public class PlayerListener implements Listener {
         Block atPlayer = player.getLocation().getBlock();
         if (atPlayer.getType() != Material.LAVA) return;
 
-        // Check waterfall (lava above + lava at player)
         Block above = atPlayer.getRelative(0, 1, 0);
-        if (above.getType() == Material.LAVA) {
-            // Waterfall - check exemptions
+        boolean lavaAbove = above.getType() == Material.LAVA;
+
+        // Riding an entity (e.g. Strider): exempt unless lava flows from above
+        if (player.getVehicle() != null) {
+            if (!lavaAbove) return; // riding on lava surface — safe
+            // lava from above while riding — NOT exempt, fall through to warp
+        } else if (lavaAbove) {
+            // Not riding, waterfall exemptions
             if (player.getInventory().getItemInMainHand().getType() == Material.WARPED_FUNGUS_ON_A_STICK) return;
-            if (player.getVehicle() != null && player.getLocation().subtract(0, 1, 0).getBlock().getType() == Material.LAVA) return;
         }
 
         lavaWarping.add(player.getUniqueId());
         player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_HURT, 1f, 1f);
         player.playSound(player.getLocation(), Sound.BLOCK_FIRE_EXTINGUISH, 1f, 1f);
-        Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
-                "particle minecraft:flame " + player.getName() + " 0.3 0.3 0.3 0.1 30 force " + player.getName());
+        
+        player.spawnParticle(Particle.FLAME, player.getLocation().add(0, 1, 0), 30, 0.3, 0.3, 0.3, 0.1);
 
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             player.setFireTicks(0);
