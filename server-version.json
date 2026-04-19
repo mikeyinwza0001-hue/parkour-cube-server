@@ -1,1 +1,1 @@
-{"version":"3.3.11","mc_version":"1.21.10","description":"Parkour Cube Server","changelog":"v3.3.11 - Fix zip packaging: use .NET ZipFile instead of tar so Windows File Explorer can extract plugin jars correctly (tar-created zips used ./ entry prefixes that Explorer skipped)."}
+{"version":"3.3.12","mc_version":"1.21.10","description":"Parkour Cube Server","changelog":"v3.3.12 - Switch zip packaging to Compress-Archive to match Box/Farm/Diamond workflow so MBLT launcher extracts plugin jars correctly."}
