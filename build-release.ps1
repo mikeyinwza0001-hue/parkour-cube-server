@@ -121,8 +121,16 @@ if ($currentPlugin) {
 # ─── Create zip ───────────────────────────────────────
 Write-Host "Creating $zipName..." -ForegroundColor Yellow
 $zipPath = "$OutputDir\$zipName"
-# Compress-Archive -Path "$tempDir\*" -DestinationPath $zipPath -Force
-tar -acf $zipPath -C $tempDir .
+# Use .NET ZipFile to avoid Windows Explorer extraction issues
+# caused by tar-created ZIPs with "./" entry prefixes.
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
+[System.IO.Compression.ZipFile]::CreateFromDirectory(
+    (Resolve-Path $tempDir).Path,
+    (Join-Path (Resolve-Path $OutputDir).Path $zipName),
+    [System.IO.Compression.CompressionLevel]::Optimal,
+    $false
+)
 
 # Cleanup temp
 Remove-Item $tempDir -Recurse -Force
