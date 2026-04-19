@@ -29,6 +29,37 @@ jobs:
           echo "MC_VERSION=$($v.mc_version)" >> $env:GITHUB_OUTPUT
           echo "CHANGELOG=$($v.changelog)" >> $env:GITHUB_OUTPUT
 
+      - name: Download latest Paper server jar
+        shell: pwsh
+        run: |
+          $mc = "${{ steps.version.outputs.MC_VERSION }}"
+          Write-Host "Fetching latest Paper build for $mc..."
+          $builds = Invoke-RestMethod "https://api.papermc.io/v2/projects/paper/versions/$mc/builds"
+          $latest = $builds.builds | Select-Object -Last 1
+          $buildNum = $latest.build
+          $jarName  = $latest.downloads.application.name
+          $url = "https://api.papermc.io/v2/projects/paper/versions/$mc/builds/$buildNum/downloads/$jarName"
+          Write-Host "Downloading $url"
+          Invoke-WebRequest -Uri $url -OutFile ".\paper.jar"
+          $sz = [math]::Round((Get-Item .\paper.jar).Length / 1MB, 1)
+          Write-Host "paper.jar downloaded ($sz MB)"
+
+      - name: Download bundled JRE (Temurin 21, Windows x64)
+        shell: pwsh
+        run: |
+          $apiUrl = "https://api.adoptium.net/v3/assets/latest/21/hotspot?architecture=x64&image_type=jre&os=windows&vendor=eclipse"
+          $assets = Invoke-RestMethod $apiUrl
+          $pkg = $assets[0].binary.package
+          Write-Host "Downloading JRE: $($pkg.name)"
+          Invoke-WebRequest -Uri $pkg.link -OutFile ".\jre.zip"
+          Expand-Archive -Path ".\jre.zip" -DestinationPath ".\jre-extract" -Force
+          $root = Get-ChildItem ".\jre-extract" -Directory | Select-Object -First 1
+          New-Item -ItemType Directory -Force -Path ".\jre" | Out-Null
+          Copy-Item -Path "$($root.FullName)\*" -Destination ".\jre" -Recurse -Force
+          Remove-Item ".\jre.zip" -Force
+          Remove-Item ".\jre-extract" -Recurse -Force
+          Write-Host "JRE ready at .\jre\bin\java.exe"
+
       - name: Build release zip
         shell: pwsh
         run: |

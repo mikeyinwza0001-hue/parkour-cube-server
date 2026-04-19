@@ -1,1 +1,1 @@
-{"version":"3.3.9","mc_version":"1.21.10","description":"Parkour Cube Server","changelog":"v3.3.9 - Disable Time sidebar scoreboard (timer still tracked internally). Full server bundle."}
+{"version":"3.3.10","mc_version":"1.21.10","description":"Parkour Cube Server","changelog":"v3.3.10 - Fix release packaging: bundle paper.jar and Temurin 21 JRE into release zip (CI was missing these large binaries)."}
