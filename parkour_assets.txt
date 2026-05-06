@@ -1,3 +1,0 @@
-﻿paper.jar
-ParkourCube-3.3.5.jar
-
